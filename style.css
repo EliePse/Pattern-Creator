@@ -9,7 +9,7 @@ html, body {
 	
 	background-color: #262626;
 	
-	font-family: arial, sans-serif;
+	font-family: 'Fira Sans', Arial, serif;
 	
 }
 
@@ -50,6 +50,12 @@ html, body {
 	
 }
 
+.frame {
+	
+	flex: 1;
+	
+}
+
 .panel {
 	
 	box-sizing: border-box;
@@ -84,7 +90,6 @@ html, body {
 
 .frame-render {
 	
-	flex: 1;
 	position: relative;
 	
 	height: 100%;
@@ -190,8 +195,8 @@ html, body {
 
 .panel h3 {
 	
-	margin: 0px 0px 12px 0px;
-	padding: 4px 6px 4px 6px;
+	margin: 0px 0px 2px 0px;
+	padding: 2px 0px 2px 0px;
 	
 	font-size: 16px;
 	color: #383838;
@@ -201,12 +206,56 @@ html, body {
 	
 }
 
-.panel label {
+.panel .parameter {
 	
-	display: block;
-	margin: 5px;
-	
-	font-size: 14px;
-	color: #1f1f1f;
+	padding: 2px 8px 2px 5px;
+	border-bottom: 1px solid #4a4a4a;
+	overflow: hidden;
 	
 }
+
+.panel .parameter label {
+	
+	float: left;
+	margin: 0px 5px;
+	
+	font-size: 12px;
+	font-weight: 300;
+	color: #e5e5e5;
+	
+}
+
+.panel .parameter *:not(label) {
+	
+	float: right;
+	margin: 0px 5px;
+}
+
+.panel .parameter input {
+	
+	padding: 0;
+	margin: 0;
+	
+	font-size: 12px;
+	text-align: right;
+	color: #f2cb29;
+	
+	background: none;
+	border: none;
+	
+	outline: none;
+	
+}
+
+.panel .parameter .unit {
+	
+	padding: 0;
+	margin-left: 2px;
+	
+	font-size: 12px;
+	text-align: right;
+	color: #f2cb29;
+	
+}
+
+

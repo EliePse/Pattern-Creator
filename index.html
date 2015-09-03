@@ -24,26 +24,35 @@
 				
 			</div>
 
-			<div class="frame frame-tools">
+			<div class="frame-tools">
 				
 				<div class="panel colorPicker none"></div>
 				
-				<div class="panel sizeManager">
+				<div class="panel" name="format">
 					
-					<h3>Tailles</h3>
+					<h3>Format</h3>
 					
-					<div class="parameter">
-						<label>Taille Pattern</label>
-						<input type="number" /><br/>
+					<div class="parameter" name="tools.format.pattern.size">
+						<label>Taille Motif</label>
+						<span class="unit">px</span>
+						<input type="text" value="10" />
 					</div>
 					
-					<div class="parameter">
+					<div class="parameter" name="tools.format.pattern.scale">
+						<label>Zoom</label>
+						<span class="unit">x</span>
+						<input type="text" value="10" />
+					</div>
+					
+					<div class="parameter" name="tools.format.preview.scale">
 						<label>Zoom aperçu</label>
-						<input type="number" />
+						<span class="unit">x</span>
+						<input type="text" value="1" />
 					</div>
 					
 				</div>
 				
+				<div class="panel none"></div>
 				<div class="panel none"></div>
 				<div class="panel none"></div>
 				<div class="panel none"></div>
