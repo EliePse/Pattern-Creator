@@ -269,6 +269,7 @@ html, body {
 
 .panel[name=colorPicker] {
 	
+	flex: none;
 	min-height: 290px;
 	
 }
@@ -299,17 +300,19 @@ html, body {
 	
 }
 
-.panel .parameter .color-grid {}
+.panel .parameter.color-grid {
+	
+	padding-top: 6px;
+	padding-bottom: 4px;
+	
+}
 
 .color-grid .color-cell {
 	
-	display: inline-block;
+	float: left;
 	
 	width: 15px;
 	height: 15px;
-	
-	margin: 0;
-	padding: 0;
 	
 	cursor: pointer;
 	
@@ -319,6 +322,7 @@ html, body {
 	
 	border: 1px solid #383838;
 	color: #383838;
+	box-sizing: border-box;
 	
 }
 
