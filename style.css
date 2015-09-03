@@ -333,10 +333,40 @@ html, body {
 	
 }
 
+.panel[name=save] {
+	
+	flex: none;
+	height: 32px;
+	
+}
 
+.panel .button {
+	
+	position: relative;
+	padding: 4px 8px;
+	
+	text-align: center;
+	color: #262626;
+	
+	cursor: pointer;
+	
+	background-color: #808080;
+	
+}
 
+.panel .button:hover {
+	
+	color: #e5e5e5;
+	background-color: #4a4a4a;
+	
+}
 
-
+.panel .button a {
+	
+	position: absolute;
+	top:0; right:0; bottom:0; left:0;
+	
+}
 
 
 
