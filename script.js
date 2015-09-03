@@ -10,7 +10,8 @@ $(function() {
 	var canvas = document.getElementById('canvas'),
 		ctx = canvas.getContext('2d'),
 		$canvas = $('.frame-render .panel-canvas canvas'),
-		$brush = $('.frame-render .panel-canvas .brush');
+		$brush = $('.frame-render .panel-canvas .brush'),
+		$colorPicker;
 	
 	var TOOLS = {
 		
@@ -111,13 +112,14 @@ $(function() {
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
-	$('#colorpicker').farbtastic(function (color) {
+	$colorPicker = $('#colorpicker').farbtastic(changeBrushColor);
+	console.log($colorPicker)
+	$('.frame-tools .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
+	$('.frame-tools .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
-		console.log(color)
-		
-		TOOLS.brush.color = color;
-		$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', color);
-		$brush.css('background-color', color);
+		var color = $(this).attr('color');
+		$.farbtastic($colorPicker).setColor(color);
+		changeBrushColor(color);
 		
 	});
 	
@@ -133,9 +135,12 @@ $(function() {
 	
 	
 	
-	
-	
-	
+	function newColorCell() {
+		
+		var cell = '<div class="color-cell" color="' + TOOLS.brush.color + '" style="background-color:' + TOOLS.brush.color + ';"></div>';
+		$('.frame-tools .panel[name=colorPicker] .color-grid').prepend(cell);
+		
+	}
 	
 	function drawPointInContext(ct, x, y, color, scale) {
 		
@@ -324,5 +329,16 @@ $(function() {
 		previewPattern(nc);
 		
 	}
+	
+	
+	
+	function changeBrushColor(color) {
+		
+		TOOLS.brush.color = color;
+		$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', color);
+		$brush.css('background-color', color);
+		
+	}
+	
 	
 });

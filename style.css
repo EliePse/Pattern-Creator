@@ -227,7 +227,7 @@ html, body {
 	
 }
 
-.panel .parameter > *:not(label) {
+.panel .parameter > *:not(label):not(.color-cell) {
 	
 	float: right;
 	margin: 0px 5px;
@@ -269,7 +269,7 @@ html, body {
 
 .panel[name=colorPicker] {
 	
-	min-height: 270px;
+	min-height: 290px;
 	
 }
 
@@ -299,9 +299,28 @@ html, body {
 	
 }
 
+.panel .parameter .color-grid {}
 
+.color-grid .color-cell {
+	
+	display: inline-block;
+	
+	width: 15px;
+	height: 15px;
+	
+	margin: 0;
+	padding: 0;
+	
+	cursor: pointer;
+	
+}
 
-
+.color-grid .color-cell.new {
+	
+	border: 1px solid #383838;
+	color: #383838;
+	
+}
 
 
 
