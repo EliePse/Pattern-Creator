@@ -87,8 +87,8 @@ $(function() {
 		if(TOOLS.brush.isDrawing
 		   && TOOLS.brush.pos.x >= 0
 		   && TOOLS.brush.pos.y >= 0
-		   && TOOLS.brush.pos.x < TOOLS.format.pattern.scale
-		   && TOOLS.brush.pos.y < TOOLS.format.pattern.scale) {
+		   && TOOLS.brush.pos.x < TOOLS.format.pattern.size
+		   && TOOLS.brush.pos.y < TOOLS.format.pattern.size) {
 			
 			PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
 			
