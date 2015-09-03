@@ -15,7 +15,8 @@ $(function() {
 			pattern: {
 				size: 10,
 				scale: 10
-			}
+			},
+			showEditor : true
 			
 		},
 		
@@ -118,7 +119,10 @@ $(function() {
 	}
 	
 	
-	$('.frame-tools .parameter input').on('keydown', function (e) {
+	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
+	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
+	
+	function onChangeParameter(e) {
 		
 		var $this = $(this),
 			real_path = $this.parent().attr('name'),
@@ -142,6 +146,10 @@ $(function() {
 			
 			value--;
 			
+		}else if($this.attr('type') === "checkbox") {
+			
+			value = $this.is(':checked');
+			
 		}else {
 			
 			value = node;
@@ -153,9 +161,7 @@ $(function() {
 		modifyParameter(real_path, value);
 		$this.val(value);
 		
-		
-		
-	});
+	}
 	
 	function modifyParameter(path, val) {
 		
@@ -187,12 +193,26 @@ $(function() {
 							break;
 					}
 					
+				}else if(path[2] === 'showEditor') {
+					
+					TOOLS.format.showEditor = val;
+					if(val)
+						$('.panel-canvas').show();
+					else
+						$('.panel-canvas').hide();
+					
 				}
+				
 			}
 			
 		}
 		
 	}
+	
+	
+	
+	
+	
 	
 	function resizeCanvas(is_scale) {
 		

@@ -247,6 +247,12 @@ html, body {
 	
 }
 
+.panel .parameter input[type=checkbox] {
+	
+	
+	
+}
+
 .panel .parameter .unit {
 	
 	padding: 0;
