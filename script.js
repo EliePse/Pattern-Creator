@@ -209,8 +209,22 @@ $(function() {
 			
 			value = $this.is(':checked');
 			
-		}else
-			abort();
+		}else {
+			
+			setTimeout(function() {
+				
+				value = $this.val();
+				console.log(value);
+				var rtn = modifyParameter(real_path, value);
+				if(!rtn) abort();
+				$this.val(value);
+				
+			}, 10);
+			
+			return;
+			
+		}
+		
 		
 		var rtn = modifyParameter(real_path, value);
 		
@@ -240,12 +254,12 @@ $(function() {
 					
 					switch(path[3]) {
 						case 'size':
-							if(val < 2) return false;
+							if(isNaN(val) || val < 2) return false;
 							TOOLS.format.pattern.size = val;
 							resizeCanvas(false);
 							break;
 						case 'scale':
-							if(val < 1) return false;
+							if(isNaN(val) || val < 1) return false;
 							TOOLS.format.pattern.scale = val;
 							resizeCanvas(true);
 							break;
@@ -255,7 +269,7 @@ $(function() {
 					
 					switch(path[3]) {
 						case 'scale':
-							if(val < 1) return false;
+							if(isNaN(val) || val < 1) return false;
 							TOOLS.format.preview.scale = val;
 							previewPattern(PATTERN);
 							break;
@@ -291,8 +305,6 @@ $(function() {
 		
 		$('.panel-canvas').css('width', (size * scale) + 'px')
 			.css('height', (size * scale) + 'px');
-		
-		console.log(TOOLS.format.pattern)
 		
 		if(is_scale) {
 			
