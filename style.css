@@ -63,6 +63,8 @@ html, body {
 	border: 1px solid #808080;
 	background-color: #595959;
 	
+	overflow: hidden;
+	
 }
 
 .layer-preview {
@@ -120,8 +122,7 @@ html, body {
 	box-shadow: 0px 0px 5px 0px rgba(150,150,150, 0.4);
 	background-color: #fff;
 
-/*	cursor: crosshair;*/
-	cursor: none;
+	cursor: crosshair;
 	overflow: hidden;
 	
 	z-index: 10;
@@ -211,6 +212,7 @@ html, body {
 	padding: 2px 8px 2px 5px;
 	border-bottom: 1px solid #4a4a4a;
 	overflow: hidden;
+	min-height: 16px;
 	
 }
 
@@ -225,13 +227,13 @@ html, body {
 	
 }
 
-.panel .parameter *:not(label) {
+.panel .parameter > *:not(label) {
 	
 	float: right;
 	margin: 0px 5px;
 }
 
-.panel .parameter input {
+.panel .parameter > input {
 	
 	max-width: 50px;
 	padding: 0;
@@ -248,7 +250,7 @@ html, body {
 	
 }
 
-.panel .parameter input[type=checkbox] {
+.panel .parameter > input[type=checkbox] {
 	
 	
 	
@@ -264,5 +266,47 @@ html, body {
 	color: #f2cb29;
 	
 }
+
+.panel[name=colorPicker] {
+	
+	min-height: 270px;
+	
+}
+
+
+.panel[name=colorPicker] #colorpicker {
+	
+	padding: 8px 0px;
+	margin: 0;
+	
+}
+
+.panel[name=colorPicker] #colorpicker > div {
+	
+	float: none;
+	padding: 0;
+	margin: auto;
+	overflow: hidden;
+	
+}
+
+.panel .parameter .color-preview {
+	
+	width: 40px;
+	height: 16px;
+	border: 1px solid #000;
+	background-color: #000;
+	
+}
+
+
+
+
+
+
+
+
+
+
 
 

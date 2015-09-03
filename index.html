@@ -6,7 +6,7 @@
 		<title>Patter Creator</title>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" type="text/css" href="style.css" />
-		
+		<link rel="stylesheet" type="text/css" href="src/plugin/farbtastic/farbtastic.css" />
 	</head>
 	
 	<body>
@@ -26,7 +26,14 @@
 
 			<div class="frame-tools">
 				
-				<div class="panel colorPicker none"></div>
+				<div class="panel" name="colorPicker">
+					<h3>Couleurs</h3>
+					<div id="colorpicker" class="parameter"></div>
+					<div class="parameter" name="tools.brush.color">
+						<label>Couleur de brush</label>
+						<div class="color-preview"></div>
+					</div>
+				</div>
 				
 				<div class="panel" name="format">
 					
@@ -72,6 +79,7 @@
 		</div>
 		
 		<script src="src/jquery.js"></script>
+		<script src="src/plugin/farbtastic/farbtastic.js"></script>
 		<script src="script.js"></script>
 		
 	</body>

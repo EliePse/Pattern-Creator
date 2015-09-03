@@ -1,5 +1,12 @@
 $(function() {
 	
+	
+	
+	
+	
+	
+	
+	
 	var canvas = document.getElementById('canvas'),
 		ctx = canvas.getContext('2d'),
 		$canvas = $('.frame-render .panel-canvas canvas'),
@@ -21,7 +28,8 @@ $(function() {
 		},
 		
 		brush : {
-			pos : {x: 0, y: 0}
+			pos : {x: 0, y: 0},
+			color: '#000000'
 		}
 	};
 	
@@ -37,6 +45,23 @@ $(function() {
 			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 		];
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -71,26 +96,57 @@ $(function() {
 	
 	$canvas.on('click', function(e) {
 		
-		PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = '#000';
+		PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
 		
-		ctx.rect(TOOLS.brush.pos.x * TOOLS.format.pattern.scale,
-				 TOOLS.brush.pos.y * TOOLS.format.pattern.scale,
-				 TOOLS.format.pattern.scale,
-				 TOOLS.format.pattern.scale);
-		ctx.fillStyle = '#000';
-		ctx.fill();
+		drawPointInContext(ctx,
+						   TOOLS.brush.pos.x,
+						   TOOLS.brush.pos.y,
+						   TOOLS.brush.color,
+						   TOOLS.format.pattern.scale);
 		
 		previewPattern(PATTERN);
 		
-	})
+	});
+	
+	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
+	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
+	
+	$('#colorpicker').farbtastic(function (color) {
+		
+		console.log(color)
+		
+		TOOLS.brush.color = color;
+		$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', color);
+		$brush.css('background-color', color);
+		
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	function drawPointInContext(ct, x, y, color, scale) {
 		
+		ct.beginPath();
 		ct.rect(x * scale, y * scale, scale, scale);
 		ct.fillStyle = color;
 		ct.fill();
 		
 	}
+	
+	
 	
 	function previewPattern(pattern) {
 		
@@ -119,8 +175,6 @@ $(function() {
 	}
 	
 	
-	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
-	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
 	function onChangeParameter(e) {
 		
@@ -166,6 +220,8 @@ $(function() {
 		}
 		
 	}
+	
+	
 	
 	function modifyParameter(path, val) {
 		
@@ -220,9 +276,6 @@ $(function() {
 	
 	
 	
-	
-	
-	
 	function resizeCanvas(is_scale) {
 		
 		var size = TOOLS.format.pattern.size,
@@ -250,6 +303,8 @@ $(function() {
 			}
 			
 			$brush.css('width', scale + 'px').css('height', scale + 'px');
+			
+			previewPattern(PATTERN);
 			
 			return;
 			
