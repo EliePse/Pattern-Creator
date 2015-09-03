@@ -59,20 +59,36 @@ html, body {
 	
 }
 
+.layer-preview {
+	
+	position: absolute;
+	top:4px; right:4px; bottom:4px; left: 4px;
+	
+	background-position: center;
+	background-repeat: repeat;
+	background-color: #fff;
+	
+	z-index: 5;
+	
+}
+
+
+
+
+
 
 
 /***********************
 	  PANEL[render]
  ***********************/
 
-.panel-render {
+.frame-render {
 	
 	flex: 1;
+	position: relative;
 	
 	height: 100%;
 	text-align: center;
-	
-	background-color: #fff;
 	
 	margin-right: 2px;
 	
@@ -99,24 +115,27 @@ html, body {
 	box-shadow: 0px 0px 5px 0px rgba(150,150,150, 0.4);
 	background-color: #fff;
 
-	cursor: crosshair;
+/*	cursor: crosshair;*/
+	cursor: none;
 	overflow: hidden;
-
+	
+	z-index: 10;
+	
 }
 
 .panel-canvas .brush {
 
 	position: absolute;
-
+	display: none;
 	width: 10px;
 	height: 10px;
-
+	
 	background-color: #000;
-
+	
 	pointer-events: none;
-
+	
 	z-index: 15;
-
+	
 }
 
 .panel-canvas canvas {
@@ -135,13 +154,11 @@ html, body {
 
 
 
-
-
 /***********************
-	  PANEL[render]
+	  PANEL[tools]
  ***********************/
 
-.panel-tools {
+.frame-tools {
 	
 	
 	display: flex;
@@ -155,17 +172,17 @@ html, body {
 	
 }
 
-.panel-tools > .panel {
+.frame-tools > .panel {
 	
 	flex: 1;
 	margin: 4px 0px 4px 0px;
 	
 }
 
-.panel-tools > .panel:last-child { margin-bottom: 5px; }
-.panel-tools > .panel:first-child { margin-top: 5px; }
+.frame-tools > .panel:last-child { margin-bottom: 5px; }
+.frame-tools > .panel:first-child { margin-top: 5px; }
 
-.panel-tools > .panel.none {
+.frame-tools > .panel.none {
 	
 	opacity: 0.4;
 	

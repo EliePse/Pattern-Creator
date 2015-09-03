@@ -2,8 +2,8 @@ $(function() {
 	
 	var canvas = document.getElementById('canvas'),
 		ctx = canvas.getContext('2d'),
-		$canvas = $('.panel-render .panel-canvas canvas'),
-		$brush = $('.panel-render .panel-canvas .brush');
+		$canvas = $('.frame-render .panel-canvas canvas'),
+		$brush = $('.frame-render .panel-canvas .brush');
 	
 	var TOOLS = {
 			brush : {
@@ -90,7 +90,7 @@ $(function() {
 			
 		}
 		
-		$('.panel-render').css('background-image', 'url('+ ca.toDataURL() +')');
+		$('.layer-preview').css('background-image', 'url('+ ca.toDataURL() +')');
 		
 	}
 	
