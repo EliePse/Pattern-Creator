@@ -30,7 +30,8 @@ $(function() {
 		
 		brush : {
 			pos : {x: 0, y: 0},
-			color: '#000000'
+			color: '#000000',
+			isDrawing: false
 		}
 	};
 	
@@ -83,7 +84,23 @@ $(function() {
 		$brush.css('left', TOOLS.brush.pos.x * TOOLS.format.pattern.scale)
 			.css('top', TOOLS.brush.pos.y * TOOLS.format.pattern.scale);
 		
-		console.log()
+		if(TOOLS.brush.isDrawing
+		   && TOOLS.brush.pos.x >= 0
+		   && TOOLS.brush.pos.y >= 0
+		   && TOOLS.brush.pos.x < TOOLS.format.pattern.scale
+		   && TOOLS.brush.pos.y < TOOLS.format.pattern.scale) {
+			
+			PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
+			
+			drawPointInContext(ctx,
+							   TOOLS.brush.pos.x,
+							   TOOLS.brush.pos.y,
+							   TOOLS.brush.color,
+							   TOOLS.format.pattern.scale);
+
+			previewPattern(PATTERN);
+			
+		}
 		
 	});
 	
@@ -95,18 +112,12 @@ $(function() {
 		$brush.show();
 	});
 	
-	$canvas.on('click', function(e) {
-		
-		PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
-		
-		drawPointInContext(ctx,
-						   TOOLS.brush.pos.x,
-						   TOOLS.brush.pos.y,
-						   TOOLS.brush.color,
-						   TOOLS.format.pattern.scale);
-		
-		previewPattern(PATTERN);
-		
+	$('.frame-render').on('mousedown', function(e) {
+		TOOLS.brush.isDrawing = true;
+	});
+	
+	$('.frame-render').on('mouseup', function(e) {
+		TOOLS.brush.isDrawing = false;
 	});
 	
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
@@ -214,7 +225,6 @@ $(function() {
 			setTimeout(function() {
 				
 				value = $this.val();
-				console.log(value);
 				var rtn = modifyParameter(real_path, value);
 				if(!rtn) abort();
 				$this.val(value);
