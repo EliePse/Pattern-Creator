@@ -40,6 +40,23 @@ html, body {
 	user-select: none;
 }
 
+.pixelated {
+	
+	image-rendering:optimizeSpeed;             /* Legal fallback */
+	image-rendering:-moz-crisp-edges;          /* Firefox        */
+	image-rendering:-o-crisp-edges;            /* Opera          */
+	image-rendering:-webkit-optimize-contrast; /* Safari         */
+	image-rendering:optimize-contrast;         /* CSS3 Proposed  */
+	image-rendering:crisp-edges;               /* CSS4 Proposed  */
+	image-rendering:pixelated;                 /* CSS4 Proposed  */
+	-ms-interpolation-mode:nearest-neighbor;   /* IE8+           */
+	
+}
+
+
+
+
+
 
 
 
@@ -155,6 +172,8 @@ html, body {
 	
 	position: absolute;
 	top:0; left:0;
+	
+	width: 100%;
 	
 	z-index: 10;
 

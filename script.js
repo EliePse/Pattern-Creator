@@ -70,39 +70,7 @@ $(function() {
 	
 	
 	
-	$canvas.on('mousemove', function(e){
-		
-		var t_mouse = {
-				x: e.pageX - (TOOLS.format.pattern.scale / 2),
-				y: e.pageY - (TOOLS.format.pattern.scale / 2)
-			},
-			t_pos_parent = $canvas.offset();
-		
-		TOOLS.brush.pos.x = Math.round((t_mouse.x - t_pos_parent.left) / TOOLS.format.pattern.scale);
-		TOOLS.brush.pos.y = Math.round((t_mouse.y - t_pos_parent.top) / TOOLS.format.pattern.scale);
-		
-		$brush.css('left', TOOLS.brush.pos.x * TOOLS.format.pattern.scale)
-			.css('top', TOOLS.brush.pos.y * TOOLS.format.pattern.scale);
-		
-		if(TOOLS.brush.isDrawing
-		   && TOOLS.brush.pos.x >= 0
-		   && TOOLS.brush.pos.y >= 0
-		   && TOOLS.brush.pos.x < TOOLS.format.pattern.size
-		   && TOOLS.brush.pos.y < TOOLS.format.pattern.size) {
-			
-			PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
-			
-			drawPointInContext(ctx,
-							   TOOLS.brush.pos.x,
-							   TOOLS.brush.pos.y,
-							   TOOLS.brush.color,
-							   TOOLS.format.pattern.scale);
-
-			previewPattern(PATTERN);
-			
-		}
-		
-	});
+	$canvas.on('mousemove', draw);
 	
 	$canvas.on('mouseleave', function(e) {
 		$brush.hide();
@@ -114,10 +82,12 @@ $(function() {
 	
 	$('.frame-render').on('mousedown', function(e) {
 		TOOLS.brush.isDrawing = true;
+		draw(e);
 	});
 	
 	$('.frame-render').on('mouseup', function(e) {
 		TOOLS.brush.isDrawing = false;
+		previewPattern(PATTERN);
 	});
 	
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
@@ -158,6 +128,41 @@ $(function() {
 	
 	
 	
+	
+	
+	function draw(e){
+		
+		var t_mouse = {
+				x: e.pageX - (TOOLS.format.pattern.scale / 2),
+				y: e.pageY - (TOOLS.format.pattern.scale / 2)
+			},
+			t_pos_parent = $canvas.offset();
+		
+		TOOLS.brush.pos.x = Math.round((t_mouse.x - t_pos_parent.left) / TOOLS.format.pattern.scale);
+		TOOLS.brush.pos.y = Math.round((t_mouse.y - t_pos_parent.top) / TOOLS.format.pattern.scale);
+		
+		$brush.css('left', TOOLS.brush.pos.x * TOOLS.format.pattern.scale)
+			.css('top', TOOLS.brush.pos.y * TOOLS.format.pattern.scale);
+		
+		if(TOOLS.brush.isDrawing
+		   && TOOLS.brush.pos.x >= 0
+		   && TOOLS.brush.pos.y >= 0
+		   && TOOLS.brush.pos.x < TOOLS.format.pattern.size
+		   && TOOLS.brush.pos.y < TOOLS.format.pattern.size) {
+			
+			PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
+			
+			drawPointInContext(ctx,
+							   TOOLS.brush.pos.x,
+							   TOOLS.brush.pos.y,
+							   TOOLS.brush.color, 1);
+			
+		}
+		
+	}
+	
+	
+	
 	function newColorCell() {
 		
 		var cell = '<div class="color-cell" color="' + TOOLS.brush.color + '" style="background-color:' + TOOLS.brush.color + ';"></div>';
@@ -178,26 +183,7 @@ $(function() {
 	
 	function previewPattern(pattern) {
 		
-		var w = pattern[0].length,
-			h = pattern.length;
-		
-		var $ca = $('#process-canvas'),
-			ca = document.getElementById('process-canvas'),
-			ct = ca.getContext('2d');
-		
-		$ca.attr('width', w * TOOLS.format.preview.scale)
-			.attr('height', h * TOOLS.format.preview.scale);
-		
-		for(var y=0; y<h; y++) {
-			for(var x=0; x<w; x++) {
-				var px = pattern[y][x];
-				if(px === 0) continue;
-				drawPointInContext(ct, x, y, px, TOOLS.format.preview.scale);
-			}
-		}
-		
-		$('.layer-preview').css('background-image', 'url('+ ca.toDataURL() +')');
-		
+		$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')');
 		console.info('Preview Updated');
 		
 	}
@@ -278,12 +264,12 @@ $(function() {
 						case 'size':
 							if(isNaN(val) || val < 2) return false;
 							TOOLS.format.pattern.size = val;
-							resizeCanvas(false);
+							updateCanvasSize();
 							break;
 						case 'scale':
 							if(isNaN(val) || val < 1) return false;
 							TOOLS.format.pattern.scale = val;
-							resizeCanvas(true);
+							updateCanvasScale();
 							break;
 					}
 				
@@ -293,7 +279,7 @@ $(function() {
 						case 'scale':
 							if(isNaN(val) || val < 1) return false;
 							TOOLS.format.preview.scale = val;
-							previewPattern(PATTERN);
+							updatePreviewScale();
 							break;
 					}
 					
@@ -317,54 +303,41 @@ $(function() {
 	
 	
 	
-	function resizeCanvas(is_scale) {
+	function updateCanvasSize() {
 		
-		var size = TOOLS.format.pattern.size,
-			scale = TOOLS.format.pattern.scale;
-		
-		$canvas.attr('width', size * scale)
-			.attr('height', size * scale);
-		
-		$('.panel-canvas').css('width', (size * scale) + 'px')
-			.css('height', (size * scale) + 'px');
-		
-		if(is_scale) {
-			
-			var w = PATTERN[0].length,
-				h = PATTERN.length;
-			
-			for(var y=0; y<h; y++) {
-				for(var x=0; x<w; x++) {
-					var px = PATTERN[y][x];
-					if(px === 0) continue;
-					drawPointInContext(ctx, x, y, px, scale);
-				}
-			}
-			
-			$brush.css('width', scale + 'px').css('height', scale + 'px');
-			
-			previewPattern(PATTERN);
-			
-			return;
-			
-		}
-		
-		var nc = [];
-		
-		for(var y=0; y<size; y++) {
-			nc[y] = [];
-			for(var x=0; x<size; x++) {
-				nc[y][x] = 0;
-			}
-		}
-		
-		PATTERN = nc;
-		
-		previewPattern(nc);
+		var size = TOOLS.format.pattern.size;
+		$canvas.attr('width', size).attr('height', size);
+		PATTERN = createPatternArray(size, size);
+		updateCanvasScale();
+		updatePreviewScale();
+		previewPattern(PATTERN);
 		
 	}
 	
 	
+	
+	function updatePreviewScale() {
+		
+		var s = TOOLS.format.pattern.size * TOOLS.format.preview.scale;
+		$('.frame-render .layer-preview').css('background-size', s + 'px');
+		
+	}
+	
+	function updateCanvasScale() {
+		
+		var size = TOOLS.format.pattern.size * TOOLS.format.pattern.scale,
+			sc = TOOLS.format.pattern.scale;
+		$('.frame-render .panel-canvas').css('width', size + 'px').css('height', size + 'px');
+		$('.frame-render .panel-canvas .brush').css('width', sc + 'px').css('height', sc + 'px');
+		
+		
+	}
+	
+	function createPatternArray(X, Y) {
+		var a = [];
+		for(var y=0; y<Y; y++) a[y] = [];
+		return a;
+	}
 	
 	function changeBrushColor(color) {
 		
