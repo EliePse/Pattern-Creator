@@ -95,14 +95,18 @@ $(function() {
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
-	$colorPicker = $('#colorpicker').farbtastic(changeBrushColor);
+	$colorPicker = $('#colorpicker').farbtastic(function(color) {
+		TOOLS.brush.color = color;
+		updateBrush();
+	});
 	
 	$('.frame-tools .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
 	$('.frame-tools .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
 		var color = $(this).attr('color');
 		$.farbtastic($colorPicker).setColor(color);
-		changeBrushColor(color);
+		TOOLS.brush.color = color;
+		updateBrush();
 		
 	});
 	
@@ -134,36 +138,40 @@ $(function() {
 	
 	function draw(e){
 		
-		var t_mouse = {
-				x: e.pageX - (TOOLS.format.pattern.scale / 2),
-				y: e.pageY - (TOOLS.format.pattern.scale / 2)
+		var scale = TOOLS.format.pattern.scale,
+			size = TOOLS.format.pattern.size,
+			b_size = TOOLS.brush.size,
+			t_mouse = {
+				x: e.pageX - (scale * b_size / 2),
+				y: e.pageY - (scale * b_size / 2)
 			},
-			t_pos_parent = $canvas.offset();
+			t_pos_parent = $canvas.offset(),
+			ox, oy;
 		
-		TOOLS.brush.pos.x = Math.round((t_mouse.x - t_pos_parent.left) / TOOLS.format.pattern.scale);
-		TOOLS.brush.pos.y = Math.round((t_mouse.y - t_pos_parent.top) / TOOLS.format.pattern.scale);
+		TOOLS.brush.pos.x = ox = Math.round((t_mouse.x - t_pos_parent.left) / scale);
+		TOOLS.brush.pos.y = oy = Math.round((t_mouse.y - t_pos_parent.top) / scale);
 		
-		$brush.css('left', TOOLS.brush.pos.x * TOOLS.format.pattern.scale)
-			.css('top', TOOLS.brush.pos.y * TOOLS.format.pattern.scale);
+		$brush.css('left', TOOLS.brush.pos.x * scale)
+			.css('top', TOOLS.brush.pos.y * scale);
 		
-		if(TOOLS.brush.isDrawing
-		   && TOOLS.brush.pos.x >= 0
-		   && TOOLS.brush.pos.y >= 0
-		   && TOOLS.brush.pos.x < TOOLS.format.pattern.size
-		   && TOOLS.brush.pos.y < TOOLS.format.pattern.size) {
+		if(TOOLS.brush.isDrawing) {
 			
-			PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
-			
-			drawPointInContext(ctx,
-							   TOOLS.brush.pos.x,
-							   TOOLS.brush.pos.y,
-							   TOOLS.brush.color, 1);
-			
+			if(TOOLS.brush.pos.x >= 0 && TOOLS.brush.pos.y >= 0
+			   && TOOLS.brush.pos.x < size
+			   && TOOLS.brush.pos.y < size) {
+				
+				for(y=oy; y<oy+b_size;y++) {
+					for(x=ox; x<ox+b_size;x++) {
+						PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
+					}
+				}
+				
+				drawBrushInContext(ctx, ox, oy, TOOLS.brush.color);
+
+			}
 		}
 		
 	}
-	
-	
 	
 	function newColorCell() {
 		
@@ -172,16 +180,16 @@ $(function() {
 		
 	}
 	
-	function drawPointInContext(ct, x, y, color, scale) {
+	function drawBrushInContext(ct, x, y, color) {
+		
+		var b_s = TOOLS.brush.size;
 		
 		ct.beginPath();
-		ct.rect(x * scale, y * scale, scale, scale);
+		ct.rect(x, y, b_s, b_s);
 		ct.fillStyle = color;
 		ct.fill();
 		
 	}
-	
-	
 	
 	function previewPattern(pattern) {
 		
@@ -189,8 +197,6 @@ $(function() {
 		console.info('Preview Updated');
 		
 	}
-	
-	
 	
 	function onChangeParameter(e) {
 		
@@ -253,8 +259,6 @@ $(function() {
 		
 	}
 	
-	
-	
 	function modifyParameter(path, val) {
 		
 		var path = path.split('.');
@@ -270,11 +274,15 @@ $(function() {
 							if(isNaN(val) || val < 2) return false;
 							TOOLS.format.pattern.size = val;
 							updateCanvasSize();
+							updateCanvasScale();
+							updatePreviewScale();
+							updateBrush();
 							break;
 						case 'scale':
 							if(isNaN(val) || val < 1) return false;
 							TOOLS.format.pattern.scale = val;
 							updateCanvasScale();
+							updateBrush();
 							break;
 					}
 				
@@ -298,6 +306,18 @@ $(function() {
 					
 				}
 				
+			} else if(path[1] === 'brush') {
+				
+				
+				
+				switch(path[2]) {
+					case 'size':
+						if(isNaN(val) || val < 1) return false;
+						TOOLS.brush.size = val;
+						updateBrush();
+						break;
+				}
+				
 			}
 			
 		}
@@ -306,20 +326,14 @@ $(function() {
 		
 	}
 	
-	
-	
 	function updateCanvasSize() {
 		
 		var size = TOOLS.format.pattern.size;
 		$canvas.attr('width', size).attr('height', size);
 		PATTERN = createPatternArray(size, size);
-		updateCanvasScale();
-		updatePreviewScale();
 		previewPattern(PATTERN);
 		
 	}
-	
-	
 	
 	function updatePreviewScale() {
 		
@@ -333,8 +347,6 @@ $(function() {
 		var size = TOOLS.format.pattern.size * TOOLS.format.pattern.scale,
 			sc = TOOLS.format.pattern.scale;
 		$('.frame-render .panel-canvas').css('width', size + 'px').css('height', size + 'px');
-		$('.frame-render .panel-canvas .brush').css('width', sc + 'px').css('height', sc + 'px');
-		
 		
 	}
 	
@@ -344,11 +356,21 @@ $(function() {
 		return a;
 	}
 	
-	function changeBrushColor(color) {
+//	function changeBrushColor(color) {
+	function updateBrush() {
 		
-		TOOLS.brush.color = color;
+		var p_sc = TOOLS.format.pattern.scale;
+		
+		// Update Size
+		var size = TOOLS.brush.size * p_sc;
+		$('.frame-render .panel-canvas .brush').css('width', size + 'px').css('height', size + 'px');
+		
+		// Update Color
+		var color = TOOLS.brush.color;
 		$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', color);
 		$brush.css('background-color', color);
+		
+		console.info('Brush updated');
 		
 	}
 	
