@@ -55,14 +55,67 @@ $(function() {
 	
 	
 	
+	var Pattern = function() {
+		
+		this.width;
+		this.height;
+		this.scale;
+		this.active;
+		this.shown;
+		
+		var layers = [];
+		
+		function Pixel() {
+			this.x;
+			this.y;
+			this.color;
+			this.alpha;
+		}
+		
+		function Layer() {
+			
+			this.name;
+			this.isActive;
+			this.pixels = [];
+			
+			this.setPixel = function(x, y, color) {};
+			this.getPixel = function(x, y) {};
+			this.clear = function(x, y) {};
+			this.clearAll = function() {};
+			
+		}
+		
+		this.updateSize = function() {};
+		this.updateScale = function() {};
+		this.drawAll = function() {};
+		this.drawLayer = function() {};
+		
+		this.isActive = function() {};
+		this.isVisible = function() {};
+		
+	};
 	
 	
 	
 	
-	
-	
-	
-	
+	var Pencil = function() {
+		
+		this.pos = {x:0, y:0};
+		this.color;
+		this.alpha;
+		this.size;
+		this.brush;
+		this.active;
+		
+		var brushes;
+		
+		function Brush() {
+			
+		}
+		
+		this.draw = function() {};
+		
+	};
 	
 	
 	
