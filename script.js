@@ -31,7 +31,9 @@ $(function() {
 		brush : {
 			pos : {x: 0, y: 0},
 			color: '#000000',
-			isDrawing: false
+			isDrawing: false,
+			size: 1,
+			type: 0
 		}
 	};
 	
@@ -94,7 +96,7 @@ $(function() {
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
 	$colorPicker = $('#colorpicker').farbtastic(changeBrushColor);
-	console.log($colorPicker)
+	
 	$('.frame-tools .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
 	$('.frame-tools .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
@@ -200,11 +202,14 @@ $(function() {
 		
 		var node = TOOLS;
 		
-		for(var i=1; i<path.length; i++) {
-			
+		for(var i=1; i<path.length; i++)
 			node = node[path[i]];
-			
-		}
+		
+		
+		
+		if($this.parent().is('[disabled]'))
+			abort();
+		
 		
 		if(e.keyCode === 38) {
 			
@@ -233,7 +238,6 @@ $(function() {
 			
 		}
 		
-		
 		var rtn = modifyParameter(real_path, value);
 		
 		if(!rtn) abort();
@@ -242,6 +246,7 @@ $(function() {
 		
 		function abort() {
 			value = node;
+			console.log(value)
 			e.preventDefault();
 			return;
 		}

@@ -242,6 +242,19 @@ html, body {
 	
 }
 
+.panel .parameter[disabled] {
+	
+	opacity: 0.4;
+	cursor: not-allowed;
+	
+}
+
+.panel .parameter[disabled] * {
+	
+	cursor: inherit;
+	
+}
+
 .panel .parameter label {
 	
 	float: left;
@@ -292,6 +305,14 @@ html, body {
 	color: #f2cb29;
 	
 }
+
+
+
+
+
+
+
+
 
 .panel[name=colorPicker] {
 	
