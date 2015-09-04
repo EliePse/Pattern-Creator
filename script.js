@@ -24,7 +24,8 @@ $(function() {
 				size: 10,
 				scale: 10
 			},
-			showEditor : true
+			showEditor : true,
+			showPreview: true
 			
 		},
 		
@@ -193,6 +194,8 @@ $(function() {
 	
 	function previewPattern(pattern) {
 		
+		if(!TOOLS.format.showPreview) return;
+		
 		$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')');
 		console.info('Preview Updated');
 		
@@ -304,6 +307,14 @@ $(function() {
 					else
 						$('.panel-canvas').hide();
 					
+				}else if(path[2] === 'showPreview') {
+					
+					TOOLS.format.showPreview = val;
+					if(val) {
+						$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')').show();
+					} else
+						$('.layer-preview').hide();
+					
 				}
 				
 			} else if(path[1] === 'brush') {
@@ -356,7 +367,6 @@ $(function() {
 		return a;
 	}
 	
-//	function changeBrushColor(color) {
 	function updateBrush() {
 		
 		var p_sc = TOOLS.format.pattern.scale;
