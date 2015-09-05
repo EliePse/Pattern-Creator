@@ -55,35 +55,77 @@ $(function() {
 	
 	
 	
-	var Pattern = function() {
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	var Pixel = function(c, a) {
+		this.color = c;
+		this.alpha = a;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	var Pattern = function(w, h, s) {
 		
-		this.width;
-		this.height;
-		this.scale;
-		this.active;
-		this.shown;
+		var width = w,
+			height = h,
+			scale = s;
+		
+		this.active = true;
+		this.shown = true;
 		
 		var layers = [];
 		
-		function Pixel() {
-			this.x;
-			this.y;
-			this.color;
-			this.alpha;
-		}
-		
-		function Layer() {
+		this.addLayer = function(name, index) {
 			
-			this.name;
-			this.isActive;
-			this.pixels = [];
+			var l = new Layer(name, index);
 			
-			this.setPixel = function(x, y, color) {};
-			this.getPixel = function(x, y) {};
-			this.clear = function(x, y) {};
-			this.clearAll = function() {};
+			if(layers[index] instanceof Layer) {
+				
+				layers.push(l);
+				
+				layers.sort(function (a,b){
+					if(a.index < b.index)
+						return -1;
+					else if(a.index > b.index)
+						return 1;
+					return 0;
+				});
+				
+			} else {
+				
+				layers[index] = l;
+				
+			}
 			
-		}
+			refreshLayersDisplay();
+			
+		};
 		
 		this.updateSize = function() {};
 		this.updateScale = function() {};
@@ -93,7 +135,60 @@ $(function() {
 		this.isActive = function() {};
 		this.isVisible = function() {};
 		
+		function refreshLayersDisplay() {}
+		
+		
+		function Layer(n, i) {
+			
+			var pixels = [],
+				previewLink;
+			
+			this.name = n;
+			this.lock = false;
+			this.visible = true;
+			this.index = i;
+			
+			this.setPixel = function(i, color, alpha) {
+				//	var i = (y * width) + x;
+				pixels[i] = new Pixel(color, alpha);};
+			
+			this.getPixel = function(i) {
+				return pixels[i];};
+			
+			this.clearPixel = function(i) {
+				pixels[i] = undefined;};
+			
+			this.clearAll = function() {
+				pixels = [];};
+			
+			this.fill = function(color, alpha) {
+				for(i=0;i<pixels.length;i++)
+					this.setPixel(i, color, alpha);};
+			
+			this.setPreviewLink = function(data) {
+				previewLink = data;};
+			
+			this.getPreviewLink = function(data) {
+				return previewLink;};
+			
+		}
+		
+		
 	};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -101,21 +196,39 @@ $(function() {
 	var Pencil = function() {
 		
 		this.pos = {x:0, y:0};
-		this.color;
-		this.alpha;
-		this.size;
-		this.brush;
+		this.color = '#000000';
+		this.alpha = '1';
+		this.size = 1;
+//		this.brush;
 		this.active;
 		
-		var brushes;
+//		var brushes;
 		
-		function Brush() {
+		/*function Brush() {
 			
-		}
+			this.type;
+			
+		}*/
 		
 		this.draw = function() {};
 		
 	};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
