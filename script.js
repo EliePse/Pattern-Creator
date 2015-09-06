@@ -2,8 +2,10 @@ $(function() {
 	
 	
 	
-	
-	
+	function c_info(v){console.info(v);}
+	function c_error(v){console.error(v);}
+	function c_warn(v){console.warn(v);}
+	function c_log(v){console.log(v);}
 	
 	
 	
@@ -69,7 +71,8 @@ $(function() {
 	
 	var Main = {
 		
-		pattern : undefined
+		pattern : undefined,
+		pencil: undefined
 		
 	};
 	
@@ -119,7 +122,8 @@ $(function() {
 			height = h,
 			scale = s,
 			canvas = c,
-			context = canvas.getContext('2d');
+			context = canvas.getContext('2d'),
+			$canvas = $(c);
 		
 		this.active = true;
 		this.shown = true;
@@ -129,7 +133,7 @@ $(function() {
 		
 		this.addLayer = function(name, index) {
 			
-			var l = new Layer(name, index);
+			var l = new Layer(name, index, context);
 			
 			if(layers[index] instanceof Layer) {
 				
@@ -155,7 +159,8 @@ $(function() {
 		
 		this.getCurrentLayer = function () { return activeLayer; };
 		this.getScale = function () { return scale; };
-		this.getCanvas = function () { return; };
+		this.getCanvas = function () { return canvas; };
+		this.getSize = function () { return {x: width, y: height}; };
 		
 		this.updateSize = function() {};
 		this.updateScale = function() {};
@@ -172,18 +177,55 @@ $(function() {
 			this.addLayer('Calque 0', 0, context);
 			activeLayer = layers[0];
 			
+			$canvas.on('mousemove', function(e) {
+
+				var scale = Main.pattern.getScale(),
+					p_pos = $canvas.offset(),
+					mouse = {x:0, y:0};
+
+				mouse.x = e.pageX - (scale * Main.pencil.size / 2);
+				mouse.y = e.pageY - (scale * Main.pencil.size / 2);
+
+				Main.pencil.pos.x = Math.round((mouse.x - p_pos.left) / scale);
+				Main.pencil.pos.y = Math.round((mouse.y - p_pos.top) / scale);
+
+				if( Main.pencil.draw() )
+					activeLayer.updatePixels();
+				Main.pencil.display();
+
+			});
+
+			$(document).on('mousedown', function(e) {
+				Main.pencil.state = 1;
+				Main.pencil.draw();
+			});
+
+			$(document).on('mouseup', function(e) {
+				Main.pencil.state = -1;
+			});
+			
 		}
 		
 		function Layer(n, i, c) {
 			
-			var data = ctx.getImageData(0, 0, width, height),
-				previewLink;
 			
 			this.name = n;
 			this.lock = false;
 			this.visible = true;
 			this.index = i;
 			this.context = c;
+			
+			var data = c.getImageData(0, 0, width, height),
+				previewLink;
+			
+			this.updatePixels = function () {
+				data = c.getImageData(0, 0, width, height);
+				c_info(data);
+			};
+			
+			this.updatePreviewLink = function () {
+				previewLink = Main.pattern.getCanvas().toDataURL();
+			};
 			
 			this.setPixel = function(i, pix) {
 				//	var i = (y * width) + x;
@@ -212,6 +254,8 @@ $(function() {
 		}
 		
 		this.init();
+		
+		
 		
 		
 	};
@@ -248,25 +292,31 @@ $(function() {
 		this.activeBrush;
 		
 		this.active = true;
-		this.state; // -1: released, 1: pressed
+		this.state = -1; // -1: released, 1: pressed
 		
-		this.$ = $(selector);
+		var $this;
+		this.$ = $this = $(selector);
 		
-		var brushes;
+		var brushes = {};
 		
 		this.draw = function() {
+			
+			if(!this.active || this.state != 1) return false;
 			
 			var l = Main.pattern.getCurrentLayer(),
 				s = Main.pattern.getSize();
 			
-			if(!this.activeBrush instanceof Brush)
+			if(!(this.activeBrush instanceof Brush) )
 				this.selectBrush('default');
 			
 			if(this.pos.x >= 0 && this.pos.y >= 0 && this.pos.x < s.x && this.pos.y < s.y) {
 				
-				this.active.draw(this, l);
+				this.activeBrush.draw(this, l);
+				return true;
 				
-				/* fonctions de rafraichissement du calque (il faut que ce soit automatique) */
+			}else {
+				
+				return false;
 				
 			}
 			
@@ -274,10 +324,12 @@ $(function() {
 		
 		this.display = function () {
 			
+			if(!this.isActive) return;
+			
 			var l = Main.pattern.getCurrentLayer(),
 				sc = Main.pattern.getScale();
 			
-			if(!this.activeBrush instanceof Brush)
+			if(!(this.activeBrush instanceof Brush))
 				this.selectBrush('default');
 			
 			this.active.display(this, sc);
@@ -293,6 +345,7 @@ $(function() {
 			
 			if(name === 'default')
 				return false;
+			
 			brushes[name] = b;
 			
 		};
@@ -309,63 +362,77 @@ $(function() {
 			
 		};
 		
-		this.$.on('mousemove', function(e) {
-			
-			var scale = Main.pattern.getSacle(),
-				p_pos = $(Main.pattern.getCanvas()).offset(),
-				mouse = {x:0, y:0};
-			
-			mouse.x = e.pageX - (scale * this.size / 2);
-			mouse.y = e.pageY - (scale * this.size / 2);
+		
+		
+		
+		
+		brushes['default'] = new Brush(function (pen, layer) {
 
-			this.pos.x = Math.round((mouse.x - p_pos.left) / scale);
-			this.pos.y = Math.round((mouse.y - p_pos.top) / scale);
-			
-			if(this.active) this.draw();
-			if(Main.pattern.isActive) this.display();
-			
+			var ct = layer.context;
+
+			ct.beginPath();
+			ct.rect(pen.pos.x, pen.pos.y, pen.size, pen.size);
+			ct.fillStyle = '#' + pen.color.getHexa();
+			ct.globalAlpha = pen.color.a;
+			ct.fill();
+
+		}, function (pen, scale) {
+
+			pen.$.css('left', pen.pos.x * scale)
+				 .css('top',  pen.pos.y * scale);
+
+			c_infos(pen.pos);
+
 		});
-
-		this.$.on('mouseleave', function(e) {
-			$brush.hide();
-		});
-
-		this.$.on('mouseenter', function(e) {
-			$brush.show();});
-
-		this.$.on('mousedown', function(e) {
-			this.state = 1;
-			this.draw();
-		});
-
-		this.$.on('mouseup', function(e) {
-			this.state = -1;
-		});
+		
+		
+		
+		
 		
 	};
 	
 	
 	
 	
-	Main.pattern = new Pattern(canvas, 10, 10, 10);
-	var pen = new Pencil('.brush');
 	
-	pen.addBrush('default', new Brush(function (pen, layer) {
-		
-		var ct = layer.context;
-		
-		ct.beginPath();
-		ct.rect(pen.pos.x, pen.pos.y, pen.size, pen.size);
-		ct.fillStyle = '#' + pen.color.getHexa();
-		ct.globalAlpha = pen.color.a;
-		ct.fill();
-		
-	}, function (pen, scale) {
-		
-		pen.$.css('left', pen.pos.x * scale)
-			 .css('top',  pen.pos.y * scale);
-		
-	}));
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	Main.pattern = new Pattern(canvas, 10, 10, 10);
+	Main.pencil = new Pencil('.brush');
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -452,7 +519,7 @@ $(function() {
 	
 	
 	
-	function draw(e){
+	/*function draw(e){
 		
 		var scale = TOOLS.format.pattern.scale,
 			size = TOOLS.format.pattern.size,
@@ -487,7 +554,7 @@ $(function() {
 			}
 		}
 		
-	}
+	}*/
 	
 	function newColorCell() {
 		
@@ -512,7 +579,7 @@ $(function() {
 		
 	}
 	
-	function drawBrushInContext(ct, x, y, color) {
+	/*function drawBrushInContext(ct, x, y, color) {
 		
 		var b_s = TOOLS.brush.size;
 		
@@ -521,7 +588,7 @@ $(function() {
 		ct.fillStyle = color;
 		ct.fill();
 		
-	}
+	}*/
 	
 	function previewPattern(pattern) {
 		
