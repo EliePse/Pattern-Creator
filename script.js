@@ -13,6 +13,14 @@ $(function() {
 		$brush = $('.frame-render .panel-canvas .brush'),
 		$colorPicker;
 	
+	var mouse = {
+		
+		pageX: 0,
+		pageY: 0,
+		state: 0
+		
+	};
+	
 	var TOOLS = {
 		
 		format: {
@@ -59,7 +67,11 @@ $(function() {
 	
 	
 	
-	
+	var Main = {
+		
+		pattern : undefined
+		
+	};
 	
 	
 	
@@ -71,6 +83,21 @@ $(function() {
 	var Pixel = function(c, a) {
 		this.color = c;
 		this.alpha = a;
+	}
+	
+	var Color = function(r, v, b, a) {
+		
+		this.r = r;
+		this.v = v;
+		this.b = b;
+		this.a = (a !== undefined && a > 0 && a < 1) ? a : 1;
+		
+		this.getHexa = function () {
+			
+			return String.concat(r, v, b);
+			
+		};
+		
 	}
 	
 	
@@ -86,20 +113,19 @@ $(function() {
 	
 	
 	
-	
-	
-	
-	
-	var Pattern = function(w, h, s) {
+	var Pattern = function(c, w, h, s) {
 		
 		var width = w,
 			height = h,
-			scale = s;
+			scale = s,
+			canvas = c,
+			context = canvas.getContext('2d');
 		
 		this.active = true;
 		this.shown = true;
 		
-		var layers = [];
+		var layers = [],
+			activeLayer;
 		
 		this.addLayer = function(name, index) {
 			
@@ -123,9 +149,13 @@ $(function() {
 				
 			}
 			
-			refreshLayersDisplay();
+			refreshLayersList();
 			
 		};
+		
+		this.getCurrentLayer = function () { return activeLayer; };
+		this.getScale = function () { return scale; };
+		this.getCanvas = function () { return; };
 		
 		this.updateSize = function() {};
 		this.updateScale = function() {};
@@ -135,22 +165,30 @@ $(function() {
 		this.isActive = function() {};
 		this.isVisible = function() {};
 		
-		function refreshLayersDisplay() {}
+		function refreshLayersList() {}
 		
-		
-		function Layer(n, i) {
+		this.init = function () {
 			
-			var pixels = [],
+			this.addLayer('Calque 0', 0, context);
+			activeLayer = layers[0];
+			
+		}
+		
+		function Layer(n, i, c) {
+			
+			var data = ctx.getImageData(0, 0, width, height),
 				previewLink;
 			
 			this.name = n;
 			this.lock = false;
 			this.visible = true;
 			this.index = i;
+			this.context = c;
 			
-			this.setPixel = function(i, color, alpha) {
+			this.setPixel = function(i, pix) {
 				//	var i = (y * width) + x;
-				pixels[i] = new Pixel(color, alpha);};
+				pixels[i] = pix.color;
+			};
 			
 			this.getPixel = function(i) {
 				return pixels[i];};
@@ -173,6 +211,8 @@ $(function() {
 			
 		}
 		
+		this.init();
+		
 		
 	};
 	
@@ -189,34 +229,143 @@ $(function() {
 	
 	
 	
+	var Brush = function(dr, di) {
+
+		this.draw = dr;
+		this.display = di;
+
+	}
 	
 	
 	
-	
-	var Pencil = function() {
+	var Pencil = function (selector) {
 		
 		this.pos = {x:0, y:0};
-		this.color = '#000000';
+		this.color = new Color(0,0,0);
 		this.alpha = '1';
 		this.size = 1;
-//		this.brush;
-		this.active;
+		this.brush;
+		this.activeBrush;
 		
-//		var brushes;
+		this.active = true;
+		this.state; // -1: released, 1: pressed
 		
-		/*function Brush() {
+		this.$ = $(selector);
+		
+		var brushes;
+		
+		this.draw = function() {
 			
-			this.type;
+			var l = Main.pattern.getCurrentLayer(),
+				s = Main.pattern.getSize();
 			
-		}*/
+			if(!this.activeBrush instanceof Brush)
+				this.selectBrush('default');
+			
+			if(this.pos.x >= 0 && this.pos.y >= 0 && this.pos.x < s.x && this.pos.y < s.y) {
+				
+				this.active.draw(this, l);
+				
+				/* fonctions de rafraichissement du calque (il faut que ce soit automatique) */
+				
+			}
+			
+		};
 		
-		this.draw = function() {};
+		this.display = function () {
+			
+			var l = Main.pattern.getCurrentLayer(),
+				sc = Main.pattern.getScale();
+			
+			if(!this.activeBrush instanceof Brush)
+				this.selectBrush('default');
+			
+			this.active.display(this, sc);
+			
+		};
+		
+		this.setPos = function (x, y) {
+			pos.x = x;
+			pos.y = y;
+		};
+		
+		this.addBrush = function (name, b) {
+			
+			if(name === 'default')
+				return false;
+			brushes[name] = b;
+			
+		};
+		
+		this.selectBrush = function (name) {
+			
+			if(brushes.hasOwnProperty(name)) {
+				this.activeBrush = brushes[name];
+				return true;
+			}else {
+				this.activeBrush = brushes['default'];
+				return false;
+			}
+			
+		};
+		
+		this.$.on('mousemove', function(e) {
+			
+			var scale = Main.pattern.getSacle(),
+				p_pos = $(Main.pattern.getCanvas()).offset(),
+				mouse = {x:0, y:0};
+			
+			mouse.x = e.pageX - (scale * this.size / 2);
+			mouse.y = e.pageY - (scale * this.size / 2);
+
+			this.pos.x = Math.round((mouse.x - p_pos.left) / scale);
+			this.pos.y = Math.round((mouse.y - p_pos.top) / scale);
+			
+			if(this.active) this.draw();
+			if(Main.pattern.isActive) this.display();
+			
+		});
+
+		this.$.on('mouseleave', function(e) {
+			$brush.hide();
+		});
+
+		this.$.on('mouseenter', function(e) {
+			$brush.show();});
+
+		this.$.on('mousedown', function(e) {
+			this.state = 1;
+			this.draw();
+		});
+
+		this.$.on('mouseup', function(e) {
+			this.state = -1;
+		});
 		
 	};
 	
 	
 	
 	
+	Main.pattern = new Pattern(canvas, 10, 10, 10);
+	var pen = new Pencil('.brush');
+	
+	pen.addBrush('default', new Brush(function (pen, layer) {
+		
+		var ct = layer.context;
+		
+		ct.beginPath();
+		ct.rect(pen.pos.x, pen.pos.y, pen.size, pen.size);
+		ct.fillStyle = '#' + pen.color.getHexa();
+		ct.globalAlpha = pen.color.a;
+		ct.fill();
+		
+	}, function (pen, scale) {
+		
+		pen.$.css('left', pen.pos.x * scale)
+			 .css('top',  pen.pos.y * scale);
+		
+	}));
 	
 	
 	
@@ -239,25 +388,25 @@ $(function() {
 	
 	
 	
-	$canvas.on('mousemove', draw);
-	
-	$canvas.on('mouseleave', function(e) {
-		$brush.hide();
-	});
-	
-	$canvas.on('mouseenter', function(e) {
-		$brush.show();
-	});
-	
-	$('.frame-render').on('mousedown', function(e) {
-		TOOLS.brush.isDrawing = true;
-		draw(e);
-	});
-	
-	$('.frame-render').on('mouseup', function(e) {
-		TOOLS.brush.isDrawing = false;
-		previewPattern(PATTERN);
-	});
+//	$canvas.on('mousemove', draw);
+//	
+//	$canvas.on('mouseleave', function(e) {
+//		$brush.hide();
+//	});
+//	
+//	$canvas.on('mouseenter', function(e) {
+//		$brush.show();
+//	});
+//	
+//	$('.frame-render').on('mousedown', function(e) {
+//		TOOLS.brush.isDrawing = true;
+//		draw(e);
+//	});
+//	
+//	$('.frame-render').on('mouseup', function(e) {
+//		TOOLS.brush.isDrawing = false;
+//		previewPattern(PATTERN);
+//	});
 	
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
@@ -344,6 +493,22 @@ $(function() {
 		
 		var cell = '<div class="color-cell" color="' + TOOLS.brush.color + '" style="background-color:' + TOOLS.brush.color + ';"></div>';
 		$('.frame-tools .panel[name=colorPicker] .color-grid').prepend(cell);
+		
+	}
+	
+	function hexaToArray(hexa) {
+		
+		var h = hexa,
+			c = {r:0, v:0, b:0, a:0};
+		
+		if(hexa[0] = "#")
+			h = hexa.substr(1);
+		
+		c.r = h.substr(0, 1);
+		c.v = h.substr(2, 3);
+		c.b = h.substr(4, 5);
+		
+		return c;
 		
 	}
 	
