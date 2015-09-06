@@ -15,51 +15,38 @@ $(function() {
 		$brush = $('.frame-render .panel-canvas .brush'),
 		$colorPicker;
 	
-	var mouse = {
-		
-		pageX: 0,
-		pageY: 0,
-		state: 0
-		
-	};
-	
-	var TOOLS = {
-		
-		format: {
-			
-			preview: {
-				scale: 1
-			},
-			pattern: {
-				size: 10,
-				scale: 10
-			},
-			showEditor : true,
-			showPreview: true
-			
-		},
-		
-		brush : {
-			pos : {x: 0, y: 0},
-			color: '#000000',
-			isDrawing: false,
-			size: 1,
-			type: 0
-		}
-	};
-	
-		var PATTERN = [
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-		];
+//	var mouse = {
+//		
+//		pageX: 0,
+//		pageY: 0,
+//		state: 0
+//		
+//	};
+//	
+//	var TOOLS = {
+//		
+//		format: {
+//			
+//			preview: {
+//				scale: 1
+//			},
+//			pattern: {
+//				size: 10,
+//				scale: 10
+//			},
+//			showEditor : true,
+//			showPreview: true
+//			
+//		},
+//		
+//		brush : {
+//			pos : {x: 0, y: 0},
+//			color: '#000000',
+//			isDrawing: false,
+//			size: 1,
+//			type: 0
+//		}
+//	};
 	
 	
 	
@@ -121,6 +108,7 @@ $(function() {
 		var width = w,
 			height = h,
 			scale = s,
+			previewScale = s,
 			canvas = c,
 			context = canvas.getContext('2d'),
 			$canvas = $(c);
@@ -164,12 +152,68 @@ $(function() {
 		this.getScale = function () { return scale; };
 		this.getCanvas = function () { return $canvas; };
 		this.getSize = function () { return {x: width, y: height}; };
+		this.getPreviewScale = function () { return previewScale; };
 		
-		this.updateSize = function() {};
-		this.updateScale = function() {};
+		this.setSize = function (x, y) {
+			
+			if(x === '++')
+				width++;
+			else if(x === '--' && width - 1 > 1)
+				width--;
+			else if(!isNaN(x) && x > 0)
+				width = x;
+			else
+				return false;
+			
+			if(y === '++')
+				height++;
+			else if(y === '--' && height - 1 > 1)
+				height--;
+			else if(!isNaN(y) && y > 0)
+				height = y;
+			else
+				return false;
+			
+			c_warn('Feature to finish > layer size & reset');
+			
+			return true;
+			
+		};
+		this.setScale = function (s) {
+			
+			if(s === '++')
+				scale++;
+			else if(s === '--' && scale - 1 > 0)
+				scale--;
+			else if(!isNaN(s) && s > 0)
+				scale = s;
+			else
+				return false;
+			
+			$canvas.parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
+			Main.pencil.updateDisplay();
+			
+			return true;
+			
+		};
+		this.setPreviewScale = function (s) {
+			
+			if(s === '++')
+				previewScale++;
+			else if(s === '--' && previewScale - 1 > 0)
+				previewScale--;
+			else if(!isNaN(s) && s > 0)
+				previewScale = s;
+			else
+				return false;
+			
+			$('.frame-render .layer-preview > *').css('background-size', (previewScale * scale) + 'px');
+			return true;
+			
+		};
 		
-		this.isActive = function() {};
-		this.isVisible = function() {};
+//		this.isActive = function() {};
+//		this.isVisible = function() {};
 		
 		this.previewAll = function () {
 			
@@ -185,6 +229,8 @@ $(function() {
 			
 			this.addLayer('Calque 0', 0, context);
 			activeLayer = layers[0];
+			
+			$('.frame-render .layer-preview > *').css('background-size', (previewScale * scale) + 'px');
 			
 			$canvas.on('mouseenter', function(e) {	
 				Main.pencil.$.show();
@@ -354,6 +400,12 @@ $(function() {
 			
 		};
 		
+		this.updateDisplay = function () {
+			
+			this.activeBrush.update(this, Main.pattern.getScale());
+			
+		};
+		
 		this.updatePos = function (e) {
 			
 			var scale = Main.pattern.getScale(),
@@ -385,11 +437,26 @@ $(function() {
 		this.setColor = function (c) {
 			this.color = c;
 			this.activeBrush.update(this, Main.pattern.getScale());
+			$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', '#' + this.color.getHexa());
 		};
 		
 		this.setSize = function (s) {
-			this.size = s;
+			
+			c_info(s)
+			
+			if(s === '++')
+				this.size++;
+			else if(s === '--' && this.size - 1 > 0) {
+				this.size--;
+				
+			}else if(!isNaN(s) && s > 0)
+				this.size = s;
+			else
+				return false;
+			
 			this.activeBrush.update(this, Main.pattern.getScale());
+			return true;
+			
 		};
 		
 		this.selectBrush = function (name) {
@@ -506,49 +573,37 @@ $(function() {
 	
 	
 	
-	
-//	$canvas.on('mousemove', draw);
-//	
-//	$canvas.on('mouseleave', function(e) {
-//		$brush.hide();
-//	});
-//	
-//	$canvas.on('mouseenter', function(e) {
-//		$brush.show();
-//	});
-//	
-//	$('.frame-render').on('mousedown', function(e) {
-//		TOOLS.brush.isDrawing = true;
-//		draw(e);
-//	});
-//	
-//	$('.frame-render').on('mouseup', function(e) {
-//		TOOLS.brush.isDrawing = false;
-//		previewPattern(PATTERN);
-//	});
-	
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
 	$colorPicker = $('#colorpicker').farbtastic(function(color) {
-		TOOLS.brush.color = color;
-		updateBrush();
+		
+		var a = hexaToArray($(this).attr('color')),
+			c = new Color(a.r, a.v, a.b, 1);
+		
+		Main.pencil.setColor(c);
+		
 	});
 	
 	$('.frame-tools .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
 	$('.frame-tools .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
-		var color = $(this).attr('color');
-		$.farbtastic($colorPicker).setColor(color);
-		TOOLS.brush.color = color;
-		updateBrush();
+		var a = hexaToArray($(this).attr('color')),
+			c = new Color(a.r, a.v, a.b, 1);
+		
+		$.farbtastic($colorPicker).setColor('#' + c.getHexa());
+		Main.pencil.setColor(c);
 		
 	});
+	
 	
 	var button = document.getElementById('btn-download');
+	
 	button.addEventListener('click', function (e) {
+		
 		var dataURL = canvas.toDataURL('image/png');
 		button.href = dataURL;
+		
 	});
 	
 	
@@ -568,49 +623,11 @@ $(function() {
 	
 	
 	
-	
-	
-	
-	/*function draw(e){
-		
-		var scale = TOOLS.format.pattern.scale,
-			size = TOOLS.format.pattern.size,
-			b_size = TOOLS.brush.size,
-			t_mouse = {
-				x: e.pageX - (scale * b_size / 2),
-				y: e.pageY - (scale * b_size / 2)
-			},
-			t_pos_parent = $canvas.offset(),
-			ox, oy;
-		
-		TOOLS.brush.pos.x = ox = Math.round((t_mouse.x - t_pos_parent.left) / scale);
-		TOOLS.brush.pos.y = oy = Math.round((t_mouse.y - t_pos_parent.top) / scale);
-		
-		$brush.css('left', TOOLS.brush.pos.x * scale)
-			.css('top', TOOLS.brush.pos.y * scale);
-		
-		if(TOOLS.brush.isDrawing) {
-			
-			if(TOOLS.brush.pos.x >= 0 && TOOLS.brush.pos.y >= 0
-			   && TOOLS.brush.pos.x < size
-			   && TOOLS.brush.pos.y < size) {
-				
-				for(y=oy; y<oy+b_size;y++) {
-					for(x=ox; x<ox+b_size;x++) {
-						PATTERN[TOOLS.brush.pos.y][TOOLS.brush.pos.x] = TOOLS.brush.color;
-					}
-				}
-				
-				drawBrushInContext(ctx, ox, oy, TOOLS.brush.color);
 
-			}
-		}
-		
-	}*/
 	
 	function newColorCell() {
 		
-		var cell = '<div class="color-cell" color="' + TOOLS.brush.color + '" style="background-color:' + TOOLS.brush.color + ';"></div>';
+		var cell = '<div class="color-cell" color="#' + Main.pencil.color.getHexa() + '" style="background-color:#' + Main.pencil.color.getHexa() + ';"></div>';
 		$('.frame-tools .panel[name=colorPicker] .color-grid').prepend(cell);
 		
 	}
@@ -631,26 +648,6 @@ $(function() {
 		
 	}
 	
-	/*function drawBrushInContext(ct, x, y, color) {
-		
-		var b_s = TOOLS.brush.size;
-		
-		ct.beginPath();
-		ct.rect(x, y, b_s, b_s);
-		ct.fillStyle = color;
-		ct.fill();
-		
-	}*/
-	
-	function previewPattern(pattern) {
-		
-		if(!TOOLS.format.showPreview) return;
-		
-		$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')');
-		console.info('Preview Updated');
-		
-	}
-	
 	function onChangeParameter(e) {
 		
 		var $this = $(this),
@@ -659,24 +656,17 @@ $(function() {
 			value = $this.val(),
 			param;
 		
-		var node = TOOLS;
-		
-		for(var i=1; i<path.length; i++)
-			node = node[path[i]];
-		
-		
-		
 		if($this.parent().is('[disabled]'))
 			abort();
 		
 		
 		if(e.keyCode === 38) {
 			
-			value++;
+			value = '++';
 			
 		}else if(e.keyCode === 40) {
 			
-			value--;
+			value = '--';
 			
 		}else if($this.attr('type') === "checkbox") {
 			
@@ -699,13 +689,13 @@ $(function() {
 		
 		var rtn = modifyParameter(real_path, value);
 		
-		if(!rtn) abort();
+		if(!rtn.b) abort();
 		
-		$this.val(value);
+		$this.val(rtn.v);
 		
 		function abort() {
-			value = node;
-			console.log(value)
+			$this.val(rtn.v);
+			c_error(rtn.v);
 			e.preventDefault();
 			return;
 		}
@@ -724,18 +714,16 @@ $(function() {
 					
 					switch(path[3]) {
 						case 'size':
-							if(isNaN(val) || val < 2) return false;
-							TOOLS.format.pattern.size = val;
-							updateCanvasSize();
-							updateCanvasScale();
-							updatePreviewScale();
-							updateBrush();
+							return {
+								b: Main.pattern.setSize(val, val),
+								v: Main.pattern.getSize()
+							};
 							break;
 						case 'scale':
-							if(isNaN(val) || val < 1) return false;
-							TOOLS.format.pattern.scale = val;
-							updateCanvasScale();
-							updateBrush();
+							return {
+								b: Main.pattern.setScale(val),
+								v: Main.pattern.getScale()
+							}
 							break;
 					}
 				
@@ -743,27 +731,28 @@ $(function() {
 					
 					switch(path[3]) {
 						case 'scale':
-							if(isNaN(val) || val < 1) return false;
-							TOOLS.format.preview.scale = val;
-							updatePreviewScale();
+							return {
+								b: Main.pattern.setPreviewScale(val),
+								v: Main.pattern.getPreviewScale()
+							}
 							break;
 					}
 					
 				}else if(path[2] === 'showEditor') {
-					
-					TOOLS.format.showEditor = val;
-					if(val)
-						$('.panel-canvas').show();
-					else
-						$('.panel-canvas').hide();
+//					
+//					TOOLS.format.showEditor = val;
+//					if(val)
+//						$('.panel-canvas').show();
+//					else
+//						$('.panel-canvas').hide();
 					
 				}else if(path[2] === 'showPreview') {
-					
-					TOOLS.format.showPreview = val;
-					if(val) {
-						$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')').show();
-					} else
-						$('.layer-preview').hide();
+//					
+//					TOOLS.format.showPreview = val;
+//					if(val) {
+//						$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')').show();
+//					} else
+//						$('.layer-preview').hide();
 					
 				}
 				
@@ -773,9 +762,10 @@ $(function() {
 				
 				switch(path[2]) {
 					case 'size':
-						if(isNaN(val) || val < 1) return false;
-						TOOLS.brush.size = val;
-						updateBrush();
+						return {
+							b: Main.pencil.setSize(val),
+							v: Main.pencil.size
+						}
 						break;
 				}
 				
@@ -784,53 +774,6 @@ $(function() {
 		}
 		
 		return true;
-		
-	}
-	
-	function updateCanvasSize() {
-		
-		var size = TOOLS.format.pattern.size;
-		$canvas.attr('width', size).attr('height', size);
-		PATTERN = createPatternArray(size, size);
-		previewPattern(PATTERN);
-		
-	}
-	
-	function updatePreviewScale() {
-		
-		var s = TOOLS.format.pattern.size * TOOLS.format.preview.scale;
-		$('.frame-render .layer-preview').css('background-size', s + 'px');
-		
-	}
-	
-	function updateCanvasScale() {
-		
-		var size = TOOLS.format.pattern.size * TOOLS.format.pattern.scale,
-			sc = TOOLS.format.pattern.scale;
-		$('.frame-render .panel-canvas').css('width', size + 'px').css('height', size + 'px');
-		
-	}
-	
-	function createPatternArray(X, Y) {
-		var a = [];
-		for(var y=0; y<Y; y++) a[y] = [];
-		return a;
-	}
-	
-	function updateBrush() {
-		
-		var p_sc = TOOLS.format.pattern.scale;
-		
-		// Update Size
-		var size = TOOLS.brush.size * p_sc;
-		$('.frame-render .panel-canvas .brush').css('width', size + 'px').css('height', size + 'px');
-		
-		// Update Color
-		var color = TOOLS.brush.color;
-		$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', color);
-		$brush.css('background-color', color);
-		
-		console.info('Brush updated');
 		
 	}
 	
