@@ -147,6 +147,9 @@ $(function() {
 					return 0;
 				});
 				
+				for(i=0; i<layers.length; i++)
+					layers[i].setIndex(i);
+				
 			} else {
 				
 				layers[index] = l;
@@ -159,16 +162,22 @@ $(function() {
 		
 		this.getCurrentLayer = function () { return activeLayer; };
 		this.getScale = function () { return scale; };
-		this.getCanvas = function () { return canvas; };
+		this.getCanvas = function () { return $canvas; };
 		this.getSize = function () { return {x: width, y: height}; };
 		
 		this.updateSize = function() {};
 		this.updateScale = function() {};
-		this.drawAll = function() {};
-		this.drawLayer = function() {};
 		
 		this.isActive = function() {};
 		this.isVisible = function() {};
+		
+		this.previewAll = function () {
+			
+			for(i=0; i<layers.length; i++) {
+				layers[i].preview();
+			}
+			
+		};
 		
 		function refreshLayersList() {}
 		
@@ -177,31 +186,36 @@ $(function() {
 			this.addLayer('Calque 0', 0, context);
 			activeLayer = layers[0];
 			
-			$canvas.on('mousemove', function(e) {
-
-				var scale = Main.pattern.getScale(),
-					p_pos = $canvas.offset(),
-					mouse = {x:0, y:0};
-
-				mouse.x = e.pageX - (scale * Main.pencil.size / 2);
-				mouse.y = e.pageY - (scale * Main.pencil.size / 2);
-
-				Main.pencil.pos.x = Math.round((mouse.x - p_pos.left) / scale);
-				Main.pencil.pos.y = Math.round((mouse.y - p_pos.top) / scale);
-
-				if( Main.pencil.draw() )
+			$canvas.on('mouseenter', function(e) {	
+				Main.pencil.$.show();
+			});
+			
+			$canvas.on('mouseleave', function(e) {	
+				Main.pencil.$.hide();
+			});
+			
+			$canvas.on('mousemove', function(e) {	
+				Main.pencil.updatePos(e);
+				if( Main.pencil.draw() ) {
 					activeLayer.updatePixels();
+					activeLayer.updatePreviewLink();
+				}
 				Main.pencil.display();
-
 			});
 
 			$(document).on('mousedown', function(e) {
 				Main.pencil.state = 1;
-				Main.pencil.draw();
+				Main.pencil.updatePos(e);
+				if( Main.pencil.draw() ) {
+					activeLayer.updatePixels();
+					activeLayer.updatePreviewLink();
+				}
+				Main.pencil.display();
 			});
 
 			$(document).on('mouseup', function(e) {
 				Main.pencil.state = -1;
+				Main.pattern.previewAll();
 			});
 			
 		}
@@ -209,25 +223,35 @@ $(function() {
 		function Layer(n, i, c) {
 			
 			
-			this.name = n;
+			this.name = n.replace(' ', '_');
 			this.lock = false;
 			this.visible = true;
 			this.index = i;
 			this.context = c;
+			$('.layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
+			this.$ = $('.layer-'+ this.name);
 			
 			var data = c.getImageData(0, 0, width, height),
 				previewLink;
 			
 			this.updatePixels = function () {
 				data = c.getImageData(0, 0, width, height);
-				c_info(data);
 			};
 			
 			this.updatePreviewLink = function () {
-				previewLink = Main.pattern.getCanvas().toDataURL();
+				previewLink = canvas.toDataURL();
 			};
 			
-			this.setPixel = function(i, pix) {
+			this.preview = function () {
+				this.$.css('background-image', 'url('+ previewLink +')');
+			};
+			
+			this.setIndex = function (i) {
+				this.index = i;
+				this.$.css('z-index', i);
+			};
+			
+			/*this.setPixel = function(i, pix) {
 				//	var i = (y * width) + x;
 				pixels[i] = pix.color;
 			};
@@ -243,13 +267,7 @@ $(function() {
 			
 			this.fill = function(color, alpha) {
 				for(i=0;i<pixels.length;i++)
-					this.setPixel(i, color, alpha);};
-			
-			this.setPreviewLink = function(data) {
-				previewLink = data;};
-			
-			this.getPreviewLink = function(data) {
-				return previewLink;};
+					this.setPixel(i, color, alpha);};*/
 			
 		}
 		
@@ -273,10 +291,11 @@ $(function() {
 	
 	
 	
-	var Brush = function(dr, di) {
+	var Brush = function(dr, di, up) {
 
 		this.draw = dr;
 		this.display = di;
+		this.update = up;
 
 	}
 	
@@ -324,15 +343,28 @@ $(function() {
 		
 		this.display = function () {
 			
-			if(!this.isActive) return;
+			if(!this.active) return;
 			
-			var l = Main.pattern.getCurrentLayer(),
-				sc = Main.pattern.getScale();
+			var l = Main.pattern.getCurrentLayer();
 			
 			if(!(this.activeBrush instanceof Brush))
 				this.selectBrush('default');
 			
-			this.active.display(this, sc);
+			this.activeBrush.display(this, Main.pattern.getScale());
+			
+		};
+		
+		this.updatePos = function (e) {
+			
+			var scale = Main.pattern.getScale(),
+				p_pos = Main.pattern.getCanvas().offset(),
+				mouse = {x:0, y:0};
+
+			mouse.x = e.pageX - (scale * Main.pencil.size / 2);
+			mouse.y = e.pageY - (scale * Main.pencil.size / 2);
+
+			this.pos.x = Math.round((mouse.x - p_pos.left) / scale);
+			this.pos.y = Math.round((mouse.y - p_pos.top) / scale);
 			
 		};
 		
@@ -350,13 +382,25 @@ $(function() {
 			
 		};
 		
+		this.setColor = function (c) {
+			this.color = c;
+			this.activeBrush.update(this, Main.pattern.getScale());
+		};
+		
+		this.setSize = function (s) {
+			this.size = s;
+			this.activeBrush.update(this, Main.pattern.getScale());
+		};
+		
 		this.selectBrush = function (name) {
 			
 			if(brushes.hasOwnProperty(name)) {
 				this.activeBrush = brushes[name];
+				this.activeBrush.update(this, Main.pattern.getScale());
 				return true;
 			}else {
 				this.activeBrush = brushes['default'];
+				this.activeBrush.update(this, Main.pattern.getScale());
 				return false;
 			}
 			
@@ -381,9 +425,17 @@ $(function() {
 			pen.$.css('left', pen.pos.x * scale)
 				 .css('top',  pen.pos.y * scale);
 
-			c_infos(pen.pos);
-
+		}, function (pen, scale) {
+			
+			var size = pen.size * scale;
+			pen.$.css('width', size + 'px').css('height', size + 'px');
+			pen.$.css('background-color', '#' + pen.color.getHexa());
+			
 		});
+		
+		this.activeBrush = brushes['default'];
+		
+		this.activeBrush.update(this, Main.pattern.getScale());
 		
 		
 		
