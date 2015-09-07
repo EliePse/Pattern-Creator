@@ -101,6 +101,8 @@ $(function() {
 			index = (activeLayer === undefined) ? 0 : (activeLayer.index);
 			
 			var l = new Layer(name, index, context);
+			context.clearRect(0, 0, width, height);
+			
 			if(layers[index] instanceof Layer) {
 				
 				layers.push(l);
@@ -258,12 +260,14 @@ $(function() {
 				activeLayer.hideActive();
 				activeLayer = a;
 				activeLayer.showActive();
+				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}else if(!isNaN(a)) {
 				
 				activeLayer.hideActive();
 				activeLayer = layers[a];
 				activeLayer.showActive();
+				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}
 			
@@ -376,6 +380,7 @@ $(function() {
 			};
 			this.showActive = function () { this.$lpanel.addClass('active'); };
 			this.hideActive = function () { this.$lpanel.removeClass('active');};
+			this.getData = function () { return data; };
 			
 			$('.layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
 			this.$ = $('.layer-'+ this.name);
