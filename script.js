@@ -736,9 +736,9 @@ $(function() {
 		if(hexa[0] = "#")
 			h = hexa.substr(1);
 		
-		c.r = h.substr(0, 1);
-		c.v = h.substr(2, 3);
-		c.b = h.substr(4, 5);
+		c.r = h.substr(0, 2);
+		c.v = h.substr(2, 2);
+		c.b = h.substr(4, 2);
 		
 		return c;
 		
