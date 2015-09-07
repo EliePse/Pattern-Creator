@@ -95,8 +95,12 @@ $(function() {
 		
 		this.addLayer = function(name, index) {
 			
-			var l = new Layer(name, index, context);
+			if(name === '' || name === undefined)
+				name = 'Calque ' + layers.length;
 			
+			index = (activeLayer === undefined) ? 0 : (activeLayer.index);
+			
+			var l = new Layer(name, index, context);
 			if(layers[index] instanceof Layer) {
 				
 				layers.push(l);
@@ -106,7 +110,8 @@ $(function() {
 						return -1;
 					else if(a.index > b.index)
 						return 1;
-					return 0;
+					else
+						return 0;
 				});
 				
 				for(i=0; i<layers.length; i++)
@@ -117,6 +122,8 @@ $(function() {
 				layers[index] = l;
 				
 			}
+			
+			activeLayer = l;
 			
 			refreshLayersList();
 			
@@ -244,11 +251,41 @@ $(function() {
 			
 		};
 		
-		function refreshLayersList() {}
+		this.setActiveLayer = function (a) {
+			
+			if(a instanceof Layer) {
+				
+				activeLayer.hideActive();
+				activeLayer = a;
+				activeLayer.showActive();
+				
+			}else if(!isNaN(a)) {
+				
+				activeLayer.hideActive();
+				activeLayer = layers[a];
+				activeLayer.showActive();
+				
+			}
+			
+		};
+		
+		function refreshLayersList() {
+			
+			var cont = $('.panel[name=layers] .container');
+			cont.html('');
+			
+			for(var i=layers.length - 1; i>=0; i--) {
+				var l = layers[i];
+				l.printIntoPanel();
+				if(l == activeLayer)
+					l.showActive();
+			}
+			
+		}
 		
 		this.init = function () {
 			
-			this.addLayer('Calque 0', 0, context);
+			this.addLayer('Calque 0', context);
 			activeLayer = layers[0];
 			
 			$('.frame-render .layer-preview > *').css('background-size', (previewScale * scale) + 'px');
@@ -287,6 +324,11 @@ $(function() {
 			
 		}
 		
+		
+		
+		
+		
+		
 		function Layer(n, i, c) {
 			
 			this.name = n.replace(' ', '_');
@@ -294,8 +336,7 @@ $(function() {
 			this.visible = true;
 			this.index = i;
 			this.context = c;
-			$('.layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
-			this.$ = $('.layer-'+ this.name);
+			this.$lpanel;
 			
 			var data = c.getImageData(0, 0, width, height),
 				previewLink;
@@ -309,6 +350,7 @@ $(function() {
 			};
 			
 			this.preview = function () {
+				this.$lpanel.find('.preview').css('background-image', 'url('+ previewLink +')');
 				this.$.css('background-image', 'url('+ previewLink +')');
 			};
 			
@@ -320,32 +362,30 @@ $(function() {
 				this.updatePixels();
 				previewLink = undefined;
 				this.$.css('background-image', '');
-			}
-			
-			/*this.setPixel = function(i, pix) {
-				//	var i = (y * width) + x;
-				pixels[i] = pix.color;
 			};
+			this.printIntoPanel = function () {
+				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
+														   + '" index="'+ this.index
+														   +'"><div class="preview pixelated"></div><h6 class="title">'+ this.name
+														   +'</h6></div>');
+				this.$lpanel = $('.panel[name=layers] .container .layer[name='+ this.name +']');
+				this.$lpanel.find('.preview').css('background-image', 'url('+ previewLink +')');
+				this.$lpanel.click(function () {
+					Main.pattern.setActiveLayer($(this).attr('index'));
+				});
+			};
+			this.showActive = function () { this.$lpanel.addClass('active'); };
+			this.hideActive = function () { this.$lpanel.removeClass('active');};
 			
-			this.getPixel = function(i) {
-				return pixels[i];};
-			
-			this.clearPixel = function(i) {
-				pixels[i] = undefined;};
-			
-			this.clearAll = function() {
-				pixels = [];};
-			
-			this.fill = function(color, alpha) {
-				for(i=0;i<pixels.length;i++)
-					this.setPixel(i, color, alpha);};*/
+			$('.layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
+			this.$ = $('.layer-'+ this.name);
 			
 		}
 		
+		
+		
+		
 		this.init();
-		
-		
-		
 		
 	};
 	
@@ -593,7 +633,9 @@ $(function() {
 	
 	
 	
-	
+	$('.frame-tools .panel[name=layers] .tools > div[action=add]').click(function () {
+		Main.pattern.addLayer();
+	});
 	
 	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
 	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
