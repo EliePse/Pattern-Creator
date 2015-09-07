@@ -15,39 +15,6 @@ $(function() {
 		$brush = $('.frame-render .panel-canvas .brush'),
 		$colorPicker;
 	
-//	var mouse = {
-//		
-//		pageX: 0,
-//		pageY: 0,
-//		state: 0
-//		
-//	};
-//	
-//	var TOOLS = {
-//		
-//		format: {
-//			
-//			preview: {
-//				scale: 1
-//			},
-//			pattern: {
-//				size: 10,
-//				scale: 10
-//			},
-//			showEditor : true,
-//			showPreview: true
-//			
-//		},
-//		
-//		brush : {
-//			pos : {x: 0, y: 0},
-//			color: '#000000',
-//			isDrawing: false,
-//			size: 1,
-//			type: 0
-//		}
-//	};
-	
 	
 	
 	
@@ -84,13 +51,19 @@ $(function() {
 		
 		this.getHexa = function () {
 			
-			return String.concat(r, v, b);
+			return String.concat(this.r, this.v, this.b);
 			
 		};
 		
 	}
 	
-	
+	var Brush = function(dr, di, up) {
+
+		this.draw = dr;
+		this.display = di;
+		this.update = up;
+
+	}
 	
 	
 	
@@ -114,7 +87,8 @@ $(function() {
 			$canvas = $(c);
 		
 		this.active = true;
-		this.shown = true;
+		var showEditor = true,
+			showPreview = true;
 		
 		var layers = [],
 			activeLayer;
@@ -207,14 +181,38 @@ $(function() {
 			else
 				return false;
 			
-			$('.frame-render .layer-preview > *').css('background-size', (previewScale * scale) + 'px');
+			$('.frame-render .layer-preview > *').css('background-size', (previewScale * width) + 'px');
 			return true;
 			
 		};
 		
-//		this.isActive = function() {};
-//		this.isVisible = function() {};
+		this.hidePreview = function () {
+			
+			$('.layer-preview').hide();
+			showPreview = false;
+			
+		};
+		this.showPreview = function () {
+			
+			$('.layer-preview').show();
+			showPreview = true;
+			
+		};
+		this.hideEditor = function () {
+			
+			$canvas.parent().hide();
+			showEditor = false;
+			
+		};
+		this.showEditor = function () {
+			
+			$canvas.parent().show();
+			showEditor = true;
+			
+		};
 		
+		this.isEditor = function () {return showEditor;};
+		this.isPreview = function () {return showPreview;};
 		this.previewAll = function () {
 			
 			for(i=0; i<layers.length; i++) {
@@ -337,13 +335,7 @@ $(function() {
 	
 	
 	
-	var Brush = function(dr, di, up) {
-
-		this.draw = dr;
-		this.display = di;
-		this.update = up;
-
-	}
+	
 	
 	
 	
@@ -420,11 +412,6 @@ $(function() {
 			
 		};
 		
-		this.setPos = function (x, y) {
-			pos.x = x;
-			pos.y = y;
-		};
-		
 		this.addBrush = function (name, b) {
 			
 			if(name === 'default')
@@ -439,7 +426,6 @@ $(function() {
 			this.activeBrush.update(this, Main.pattern.getScale());
 			$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', '#' + this.color.getHexa());
 		};
-		
 		this.setSize = function (s) {
 			
 			c_info(s)
@@ -457,6 +443,10 @@ $(function() {
 			this.activeBrush.update(this, Main.pattern.getScale());
 			return true;
 			
+		};
+		this.setPos = function (x, y) {
+			pos.x = x;
+			pos.y = y;
 		};
 		
 		this.selectBrush = function (name) {
@@ -739,25 +729,32 @@ $(function() {
 					}
 					
 				}else if(path[2] === 'showEditor') {
-//					
-//					TOOLS.format.showEditor = val;
-//					if(val)
-//						$('.panel-canvas').show();
-//					else
-//						$('.panel-canvas').hide();
+					
+					if(val)
+						Main.pattern.showEditor();
+					else
+						Main.pattern.hideEditor();
+						
+					return {
+						b: true,
+						v: Main.pattern.isEditor()
+					}
 					
 				}else if(path[2] === 'showPreview') {
-//					
-//					TOOLS.format.showPreview = val;
-//					if(val) {
-//						$('.layer-preview').css('background-image', 'url('+ canvas.toDataURL() +')').show();
-//					} else
-//						$('.layer-preview').hide();
+					
+					if(val)
+						Main.pattern.showPreview();
+					else
+						Main.pattern.hidePreview();
+						
+					return {
+						b: true,
+						v: Main.pattern.isPreview()
+					}
 					
 				}
 				
 			} else if(path[1] === 'brush') {
-				
 				
 				
 				switch(path[2]) {
