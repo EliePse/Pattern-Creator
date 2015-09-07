@@ -84,7 +84,8 @@ $(function() {
 			previewScale = s,
 			canvas = c,
 			context = canvas.getContext('2d'),
-			$canvas = $(c);
+			$canvas = $(c),
+			$lContainer = $canvas.parent();
 		
 		this.active = true;
 		var showEditor = true,
@@ -125,9 +126,14 @@ $(function() {
 				
 			}
 			
+			if(activeLayer)
+				activeLayer.hideActive();
 			activeLayer = l;
 			
 			refreshLayersList();
+			
+			activeLayer.showActive();
+			$canvas.css('z-index', activeLayer.index);
 			
 		};
 		
@@ -201,10 +207,10 @@ $(function() {
 			
 		};
 		this.updatePreviewScale = function () {
-			$('.frame-render .layer-preview > *').css('background-size', (previewScale * width) + 'px');
+			$('.frame-render .layer-preview').css('background-size', (previewScale * width) + 'px');
 		};
 		this.updateEditorScale = function () {
-			$canvas.parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
+			$canvas.parent().parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
 			Main.pencil.updateDisplay();
 		};
 		
@@ -230,13 +236,13 @@ $(function() {
 		};
 		this.hideEditor = function () {
 			
-			$canvas.parent().hide();
+			$canvas.parent().parent().hide();
 			showEditor = false;
 			
 		};
 		this.showEditor = function () {
 			
-			$canvas.parent().show();
+			$canvas.parent().parent().show();
 			showEditor = true;
 			
 		};
@@ -260,6 +266,7 @@ $(function() {
 				activeLayer.hideActive();
 				activeLayer = a;
 				activeLayer.showActive();
+				$canvas.css('z-index', activeLayer.index);
 				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}else if(!isNaN(a)) {
@@ -267,6 +274,7 @@ $(function() {
 				activeLayer.hideActive();
 				activeLayer = layers[a];
 				activeLayer.showActive();
+				$canvas.css('z-index', activeLayer.index);
 				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}
@@ -292,7 +300,7 @@ $(function() {
 			this.addLayer('Calque 0', context);
 			activeLayer = layers[0];
 			
-			$('.frame-render .layer-preview > *').css('background-size', (previewScale * scale) + 'px');
+			$('.frame-render .layer-preview').css('background-size', (previewScale * scale) + 'px');
 			
 			$canvas.on('mouseenter', function(e) {	
 				Main.pencil.$.show();
@@ -340,7 +348,9 @@ $(function() {
 			this.visible = true;
 			this.index = i;
 			this.context = c;
-			this.$lpanel;
+			this.$lp; // Layer on panel
+			this.$ep; // Layer on editor
+			this.$pp; // Layer on preview
 			
 			var data = c.getImageData(0, 0, width, height),
 				previewLink;
@@ -354,36 +364,47 @@ $(function() {
 			};
 			
 			this.preview = function () {
-				this.$lpanel.find('.preview').css('background-image', 'url('+ previewLink +')');
-				this.$.css('background-image', 'url('+ previewLink +')');
+				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
+				this.$ep.attr('src', previewLink);
+				this.$pp.css('background-image', 'url('+ previewLink +')');
 			};
 			
 			this.setIndex = function (i) {
 				this.index = i;
-				this.$.css('z-index', i);
+				this.$pp.css('z-index', i);
+				this.$ep.css('z-index', i);
 			};
 			this.reset = function () {
 				this.updatePixels();
 				previewLink = undefined;
-				this.$.css('background-image', '');
+				this.$pp.css('background-image', '');
 			};
 			this.printIntoPanel = function () {
 				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
 														   + '" index="'+ this.index
 														   +'"><div class="preview pixelated"></div><h6 class="title">'+ this.name
 														   +'</h6></div>');
-				this.$lpanel = $('.panel[name=layers] .container .layer[name='+ this.name +']');
-				this.$lpanel.find('.preview').css('background-image', 'url('+ previewLink +')');
-				this.$lpanel.click(function () {
+				this.$lp = $('.panel[name=layers] .container .layer[name='+ this.name +']');
+				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
+				this.$lp.click(function () {
 					Main.pattern.setActiveLayer($(this).attr('index'));
 				});
 			};
-			this.showActive = function () { this.$lpanel.addClass('active'); };
-			this.hideActive = function () { this.$lpanel.removeClass('active');};
+			this.showActive = function () {
+				this.$lp.addClass('active');
+				this.$ep.hide();
+			};
+			this.hideActive = function () {
+				this.$lp.removeClass('active');
+				this.$ep.show();
+			};
 			this.getData = function () { return data; };
 			
-			$('.layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
-			this.$ = $('.layer-'+ this.name);
+			$('.frame-render .panel-canvas .container').append('<img class="layer pixelated" name="' + this.name + '" style="z-index:'+ this.index +';" />');
+			$('.frame-render .layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
+			
+			this.$ep = $('.frame-render .panel-canvas .container > img[name='+ this.name +']');
+			this.$pp = $('.frame-render .layer-preview .layer-'+ this.name);
 			
 		}
 		
