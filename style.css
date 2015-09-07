@@ -227,6 +227,15 @@ html, body {
 	
 }
 
+.frame-tools > .panel.fold {
+	
+	flex: none;
+	height: 27px !important;
+	min-height: auto;
+	overflow: hidden;
+	
+}
+
 .panel h3 {
 	
 	margin: 0px 0px 2px 0px;
@@ -235,6 +244,8 @@ html, body {
 	font-size: 16px;
 	color: #383838;
 	text-align: center;
+	
+	cursor: pointer;
 	
 	background-color: #808080;
 	

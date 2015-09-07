@@ -236,6 +236,8 @@ $(function() {
 		this.isPreview = function () {return showPreview;};
 		this.previewAll = function () {
 			
+			if(!showPreview) return;
+			
 			for(i=0; i<layers.length; i++) {
 				layers[i].preview();
 			}
@@ -602,6 +604,12 @@ $(function() {
 			c = new Color(a.r, a.v, a.b, 1);
 		
 		Main.pencil.setColor(c);
+		
+	});
+	
+	$('.frame-tools .panel > h3').click(function(){
+		
+		$(this).parent().toggleClass('fold');
 		
 	});
 	
