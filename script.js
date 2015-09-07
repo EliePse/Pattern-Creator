@@ -50,8 +50,8 @@ $(function() {
 		this.a = (a !== undefined && a > 0 && a < 1) ? a : 1;
 		
 		this.getHexa = function () {
-			
-			return String.concat(this.r, this.v, this.b);
+			var hexa = '';
+			return hexa.concat(this.r, this.v, this.b);
 			
 		};
 		
