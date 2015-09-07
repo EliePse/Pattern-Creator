@@ -378,6 +378,8 @@ $(function() {
 				this.updatePixels();
 				previewLink = undefined;
 				this.$pp.css('background-image', '');
+				this.$lp.find('.preview').css('background-image', '');
+				this.$ep.removeAttr('src');
 			};
 			this.printIntoPanel = function () {
 				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
