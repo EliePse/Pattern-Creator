@@ -130,6 +130,8 @@ $(function() {
 		
 		this.setSize = function (x, y) {
 			
+			var tSize = {x:width, y:height};
+			
 			if(x === '++')
 				width++;
 			else if(x === '--' && width - 1 > 1)
@@ -148,7 +150,12 @@ $(function() {
 			else
 				return false;
 			
-			c_warn('Feature to finish > layer size & reset');
+			if(tSize.x === width && tSize.y === height) return false;
+			
+			$canvas.attr('width', width).attr('height', height);
+			this.updateEditorScale();
+			this.updatePreviewScale();
+			this.reset();
 			
 			return true;
 			
@@ -164,8 +171,7 @@ $(function() {
 			else
 				return false;
 			
-			$canvas.parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
-			Main.pencil.updateDisplay();
+			this.updateEditorScale();
 			
 			return true;
 			
@@ -181,8 +187,23 @@ $(function() {
 			else
 				return false;
 			
-			$('.frame-render .layer-preview > *').css('background-size', (previewScale * width) + 'px');
+			this.updatePreviewScale();
 			return true;
+			
+		};
+		this.updatePreviewScale = function () {
+			$('.frame-render .layer-preview > *').css('background-size', (previewScale * width) + 'px');
+		};
+		this.updateEditorScale = function () {
+			$canvas.parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
+			Main.pencil.updateDisplay();
+		};
+		
+		this.reset = function () {
+			
+			for(i=0; i<layers.length; i++) {
+				layers[i].reset();
+			}
 			
 		};
 		
@@ -266,7 +287,6 @@ $(function() {
 		
 		function Layer(n, i, c) {
 			
-			
 			this.name = n.replace(' ', '_');
 			this.lock = false;
 			this.visible = true;
@@ -294,6 +314,11 @@ $(function() {
 				this.index = i;
 				this.$.css('z-index', i);
 			};
+			this.reset = function () {
+				this.updatePixels();
+				previewLink = undefined;
+				this.$.css('background-image', '');
+			}
 			
 			/*this.setPixel = function(i, pix) {
 				//	var i = (y * width) + x;
@@ -342,6 +367,7 @@ $(function() {
 	var Pencil = function (selector) {
 		
 		this.pos = {x:0, y:0};
+		this.realPos = {x:0, y:0};
 		this.color = new Color(0,0,0);
 		this.alpha = '1';
 		this.size = 1;
@@ -402,13 +428,17 @@ $(function() {
 			
 			var scale = Main.pattern.getScale(),
 				p_pos = Main.pattern.getCanvas().offset(),
-				mouse = {x:0, y:0};
+				mouse = {x:0, y:0},
+				realmouse = {x:0, y:0};
 
 			mouse.x = e.pageX - (scale * Main.pencil.size / 2);
 			mouse.y = e.pageY - (scale * Main.pencil.size / 2);
 
 			this.pos.x = Math.round((mouse.x - p_pos.left) / scale);
 			this.pos.y = Math.round((mouse.y - p_pos.top) / scale);
+			
+			this.realPos.x = (e.pageX - p_pos.left);
+			this.realPos.y = (e.pageY - p_pos.top);
 			
 		};
 		
@@ -638,6 +668,10 @@ $(function() {
 		
 	}
 	
+	
+	
+	
+	
 	function onChangeParameter(e) {
 		
 		var $this = $(this),
@@ -706,7 +740,7 @@ $(function() {
 						case 'size':
 							return {
 								b: Main.pattern.setSize(val, val),
-								v: Main.pattern.getSize()
+								v: Main.pattern.getSize().x
 							};
 							break;
 						case 'scale':
