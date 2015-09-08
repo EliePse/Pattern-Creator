@@ -258,7 +258,9 @@ $(function() {
 			}
 			
 		};
-		
+		this.getLayer = function (i) {
+			return layers[i];
+		};
 		this.setActiveLayer = function (a) {
 			
 			if(a instanceof Layer) {
@@ -267,7 +269,6 @@ $(function() {
 				activeLayer = a;
 				activeLayer.showActive();
 				$canvas.css('z-index', activeLayer.index);
-				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}else if(!isNaN(a)) {
 				
@@ -275,7 +276,6 @@ $(function() {
 				activeLayer = layers[a];
 				activeLayer.showActive();
 				$canvas.css('z-index', activeLayer.index);
-				context.putImageData(activeLayer.getData(), 0, 0);
 				
 			}
 			
@@ -341,6 +341,16 @@ $(function() {
 		
 		
 		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		function Layer(n, i, c) {
 			
 			this.name = n.replace(' ', '_');
@@ -352,7 +362,7 @@ $(function() {
 			this.$ep; // Layer on editor
 			this.$pp; // Layer on preview
 			
-			var data = c.getImageData(0, 0, width, height),
+			var data = c.createImageData(width, height),
 				previewLink;
 			
 			this.updatePixels = function () {
@@ -381,13 +391,43 @@ $(function() {
 				this.$lp.find('.preview').css('background-image', '');
 				this.$ep.removeAttr('src');
 			};
+			this.show = function () {
+				this.visible = true;
+				this.$pp.show();
+				if(activeLayer === this) {
+					this.$ep.hide();
+					printIntoCanvas();
+				}else {
+					this.$ep.show();
+				}
+			};
+			this.hide = function () {
+				this.visible = false;
+				this.$pp.hide();
+				this.$ep.hide();
+				if(activeLayer === this)
+					context.clearRect(0,0, width, height);
+			};
 			this.printIntoPanel = function () {
 				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
 														   + '" index="'+ this.index
-														   +'"><div class="preview pixelated"></div><h6 class="title">'+ this.name
-														   +'</h6></div>');
+														   + '"><input type="checkbox" checked autocomplete="off" />'
+														   + '<div class="preview pixelated"></div><h6 class="title">'+ this.name
+														   + '</h6></div>');
 				this.$lp = $('.panel[name=layers] .container .layer[name='+ this.name +']');
 				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
+				this.$lp.find('input').click(function (e) {
+					
+					var $this = $(this);
+					
+					if($this.is(':checked'))
+						Main.pattern.getLayer($this.parent().attr('index')).show();
+					else
+						Main.pattern.getLayer($this.parent().attr('index')).hide();
+					
+					e.stopPropagation();
+					
+				});
 				this.$lp.click(function () {
 					Main.pattern.setActiveLayer($(this).attr('index'));
 				});
@@ -395,12 +435,21 @@ $(function() {
 			this.showActive = function () {
 				this.$lp.addClass('active');
 				this.$ep.hide();
+				if(!this.visible)
+					context.clearRect(0,0, width, height);
+				else
+					printIntoCanvas();
 			};
 			this.hideActive = function () {
 				this.$lp.removeClass('active');
+				if(!this.visible) return;
 				this.$ep.show();
 			};
 			this.getData = function () { return data; };
+			
+			function printIntoCanvas() {
+				context.putImageData(data, 0, 0);
+			}
 			
 			$('.frame-render .panel-canvas .container').append('<img class="layer pixelated" name="' + this.name + '" style="z-index:'+ this.index +';" />');
 			$('.frame-render .layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
@@ -409,6 +458,23 @@ $(function() {
 			this.$pp = $('.frame-render .layer-preview .layer-'+ this.name);
 			
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
@@ -459,6 +525,8 @@ $(function() {
 			var l = Main.pattern.getCurrentLayer(),
 				s = Main.pattern.getSize();
 			
+			if(!l.visible) return false;
+			
 			if(!(this.activeBrush instanceof Brush) )
 				this.selectBrush('default');
 			
@@ -480,6 +548,8 @@ $(function() {
 			if(!this.active) return;
 			
 			var l = Main.pattern.getCurrentLayer();
+			
+			if(!l.visible) return false;
 			
 			if(!(this.activeBrush instanceof Brush))
 				this.selectBrush('default');

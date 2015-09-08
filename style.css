@@ -319,12 +319,6 @@ html, body {
 	
 }
 
-.panel .parameter > input[type=checkbox] {
-	
-	
-	
-}
-
 .panel .parameter .unit {
 	
 	padding: 0;
@@ -391,6 +385,14 @@ html, body {
 	font-size: 12px;
 	font-weight: 300;
 	color: #e5e5e5;
+	
+}
+
+.panel .layer input {
+	
+	margin-left: 5px;
+	margin-right: 2px;
+	cursor: pointer;
 	
 }
 
