@@ -15,19 +15,15 @@ $(function() {
 		$brush = $('.frame-editor .panel-canvas .brush'),
 		$colorPicker;
 	
-	
-	
-	
-	
-	
-	
-	
-	
 	var Main = {
 		
 		pattern : undefined,
 		pencil: undefined
 		
+	};
+	
+	var KEYS = {
+		ctrl: false
 	};
 	
 	
@@ -110,11 +106,48 @@ $(function() {
 			$lContainer = $canvas.parent();
 		
 		this.active = true;
+		
 		var showEditor = true,
 			showPreview = true;
 		
 		var layers = [],
 			activeLayer;
+		
+		var history = {
+			it: 0,
+			steps: []
+		};
+		
+		this.addHistory = function() {
+			
+			history.it = 0;
+			
+			history.steps.unshift({
+				layer: activeLayer,
+				data: activeLayer.getData(),
+				preview: activeLayer.getPreviewLink()
+			});
+			
+			if(history.length > 10)
+				history.steps.pop();
+			
+			c_info(history);
+			
+		}
+		
+		this.undo = function() {
+			
+			history.it++;
+			
+			if(history.it >= history.steps.length) return;
+			
+			var step = history.steps[history.it];
+			
+			step.layer.updatePreviewLink(step.preview);
+			step.layer.setData(step.data);
+			
+			
+		}
 		
 		this.addLayer = function(name, index) {
 			
@@ -279,6 +312,8 @@ $(function() {
 				layers[i].preview();
 			}
 			
+			this.addHistory();
+			
 		};
 		this.getLayer = function (i) {
 			return layers[i];
@@ -359,6 +394,7 @@ $(function() {
 			
 			this.addLayer('Calque 0', context);
 			activeLayer = layers[0];
+			this.addHistory();
 			
 			$('.frame-editor .layer-preview').css('background-size', (previewScale * scale) + 'px');
 			
@@ -409,8 +445,6 @@ $(function() {
 		
 		
 		
-		
-		
 		function Layer(n, i, c) {
 			
 			this.name = n.replace(' ', '_');
@@ -424,14 +458,17 @@ $(function() {
 			this.$pp; // Layer on preview
 			
 			var data = c.createImageData(width, height),
-				previewLink;
+				previewLink = previewLink = canvas.toDataURL();
 			
 			this.updatePixels = function () {
 				data = c.getImageData(0, 0, width, height);
 			};
 			
-			this.updatePreviewLink = function () {
-				previewLink = canvas.toDataURL();
+			this.updatePreviewLink = function (link) {
+				if(link)
+					previewLink = link;
+				else
+					previewLink = canvas.toDataURL();
 			};
 			
 			this.preview = function () {
@@ -439,7 +476,9 @@ $(function() {
 				this.$ep.attr('src', previewLink);
 				this.$pp.css('background-image', 'url('+ previewLink +')');
 			};
-			
+			this.getPreviewLink = function () {
+				return previewLink;
+			};
 			this.setIndex = function (i) {
 				this.index = i;
 				this.$pp.css('z-index', i);
@@ -471,10 +510,10 @@ $(function() {
 			};
 			this.printIntoPanel = function () {
 				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
-														   + '" index="'+ this.index
-														   + '"><input type="checkbox" checked autocomplete="off" />'
-														   + '<div class="preview pixelated"></div><h6 class="title">'+ this.displayName
-														   + '</h6></div>');
+					   + '" index="'+ this.index
+					   + '"><input type="checkbox" checked autocomplete="off" />'
+					   + '<div class="preview pixelated"></div><h6 class="title">'+ this.displayName
+					   + '</h6></div>');
 				this.$lp = $('.panel[name=layers] .container .layer[name='+ this.name +']');
 				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
 				this.$lp.find('input').click(function (e) {
@@ -507,6 +546,12 @@ $(function() {
 				this.$ep.show();
 			};
 			this.getData = function () { return data; };
+			this.setData = function (d) {
+				data = d;
+				this.preview();
+				if(activeLayer === this)
+					printIntoCanvas();
+			}
 			this.remove = function () {
 				context.clearRect(0,0, width, height);
 				this.$pp.remove();
@@ -517,6 +562,7 @@ $(function() {
 				this.displayName = n;
 				this.$lp.find('h6').html(n);
 			};
+			
 			function printIntoCanvas() {
 				context.putImageData(data, 0, 0);
 			}
@@ -600,7 +646,7 @@ $(function() {
 			if(!(this.activeBrush instanceof Brush) )
 				this.selectBrush('default');
 			
-			if(this.pos.x >= 0 && this.pos.y >= 0 && this.pos.x < s.x && this.pos.y < s.y) {
+			if(this.pos.x >= -this.size && this.pos.y >= -this.size && this.pos.x < s.x + this.size && this.pos.y < s.y + this.size) {
 				
 				this.activeBrush.draw(this, l);
 				return true;
@@ -773,11 +819,11 @@ $(function() {
 			 .css('top',  pen.pos.y * scale);
 
 	}, function (pen, scale) {
-
+		
 		var size = pen.size * scale;
 		pen.$.css('width', size + 'px').css('height', size + 'px');
 		pen.$.css('background-color', '#fff').css('border', '1px dashed grey');
-
+		
 	}));
 	
 	
@@ -809,11 +855,49 @@ $(function() {
 	
 	
 	
+	$(document).on('keydown', function(e) {
+		
+		keepKey(e.keyCode, true);
+		
+	});
+	
+	function keepKey(code, bool) {
+		
+		/* >>> cmd key !
+			Firefox: 224
+			Opera: 17
+			WebKit (Safari/Chrome): 91 (Left Apple) or 93 (Right Apple)
+			<<< */
+		
+		switch(code) {
+			case 17:
+				KEYS.ctrl = true;
+				break;
+		}
+		
+	}
 	
 	
-	
-	
-	
+	$(document).on('keyup', function(e){
+		
+		switch(e.keyCode) {
+			case 66: // B
+				Main.pencil.selectBrush('default');
+				break;
+			case 69: // E
+				Main.pencil.selectBrush('eraser');
+				break;
+			case 90: // Z
+				if(KEYS.ctrl) {
+					Main.pattern.undo();
+					e.preventDefault();
+				}
+				break;
+		}
+		
+		keepKey(e.keyCode, false);
+		
+	});
 	
 	
 	
