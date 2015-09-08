@@ -292,6 +292,8 @@ html, body {
 
 .panel h3 {
 	
+	position: relative;
+	
 	margin: 0px 0px 2px 0px;
 	padding: 2px 0px 2px 0px;
 	
@@ -299,9 +301,10 @@ html, body {
 	color: #383838;
 	text-align: center;
 	
-	cursor: pointer;
-	
 	background-color: #808080;
+	
+	cursor: pointer;
+	z-index: 10;
 	
 }
 
