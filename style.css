@@ -53,7 +53,13 @@ html, body {
 	
 }
 
-
+.fullScreen {
+	
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	
+}
 
 
 
@@ -103,7 +109,7 @@ html, body {
 	  PANEL[render]
  ***********************/
 
-.frame-render {
+.frame-editor {
 	
 	position: relative;
 	
@@ -112,10 +118,18 @@ html, body {
 	
 	margin-right: 2px;
 	
+	display: flex;
+	flex-direction: column;
+	
+}
+
+.frame-editor > * {
+	
+	position: relative;
+	
 }
 
 .layer-preview {
-	
 	position: absolute;
 	top:4px; right:4px; bottom:4px; left: 4px;
 	
@@ -138,9 +152,37 @@ html, body {
 	
 }
 
+.frame-tools {
+	
+	height: 29px;
+	margin: 4px;
+	
+	background: #595959;
+	border: 1px solid #808080;
+	box-sizing: border-box;
+	
+	text-align: left;
+	
+}
 
+.frame-tools > div {
+	
+	display: inline-block;
+	height: 100%;
+	width: 27px;
+	cursor: pointer;
+	box-sizing: border-box;
+	text-align: center;
+	
+}
 
-
+.frame-tools > div:hover,
+.frame-tools > div.active {
+	
+	border: 1px inset #808080;
+	background-color: #717171;
+	
+}
 
 
 /***********************
@@ -209,7 +251,7 @@ html, body {
 	  PANEL[tools]
  ***********************/
 
-.frame-tools {
+.frame-param {
 	
 	
 	display: flex;
@@ -223,23 +265,23 @@ html, body {
 	
 }
 
-.frame-tools > .panel {
+.frame-param > .panel {
 	
 	flex: 1;
 	margin: 4px 0px 4px 0px;
 	
 }
 
-.frame-tools > .panel:last-child { margin-bottom: 5px; }
-.frame-tools > .panel:first-child { margin-top: 5px; }
+.frame-param > .panel:last-child { margin-bottom: 5px; }
+.frame-param > .panel:first-child { margin-top: 5px; }
 
-.frame-tools > .panel.none {
+.frame-param > .panel.none {
 	
 	opacity: 0.4;
 	
 }
 
-.frame-tools > .panel.fold {
+.frame-param > .panel.fold {
 	
 	flex: none;
 	height: 25px !important;
@@ -529,6 +571,4 @@ html, body {
 	top:0; right:0; bottom:0; left:0;
 	
 }
-
-
 

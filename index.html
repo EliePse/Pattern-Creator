@@ -13,20 +13,29 @@
 		
 		<div class="window-editor">
 			
-			<div class="frame frame-render noselect">
+			
+			<div class="frame frame-editor noselect">
 
-				<div class="toCenterY ghost noselect"></div><!--
-				--><div class="panel-canvas toCenterY noselect">
-					<div class="brush noselect"></div>
-					<div class="noselect container">
-						<canvas id="canvas" class="noselect pixelated" width="10" height="10"></canvas>
+				<div class="frame-tools"></div>
+				
+				<div class="frame frame-render">
+					
+					<div class="fullScreen">
+						<div class="toCenterY ghost noselect"></div>
+						<div class="panel-canvas toCenterY noselect">
+							<div class="brush noselect"></div>
+							<div class="noselect container">
+								<canvas id="canvas" class="noselect pixelated" width="10" height="10"></canvas>
+							</div>
+						</div>
+						<div class="layer-preview noselect pixelated"></div>
 					</div>
+
 				</div>
-				<div class="layer-preview noselect pixelated"></div>
 				
 			</div>
 
-			<div class="frame-tools">
+			<div class="frame-param">
 				
 				<div class="panel" name="colorPicker">
 					<h3>Couleurs</h3>

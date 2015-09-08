@@ -11,8 +11,8 @@ $(function() {
 	
 	var canvas = document.getElementById('canvas'),
 		ctx = canvas.getContext('2d'),
-		$canvas = $('.frame-render .panel-canvas canvas'),
-		$brush = $('.frame-render .panel-canvas .brush'),
+		$canvas = $('.frame-editor .panel-canvas canvas'),
+		$brush = $('.frame-editor .panel-canvas .brush'),
 		$colorPicker;
 	
 	
@@ -57,11 +57,33 @@ $(function() {
 		
 	}
 	
-	var Brush = function(dr, di, up) {
-
+	var Brush = function(na, dr, di, up) {
+		
+		c_info(na)
+		
+		this.name = na;
 		this.draw = dr;
 		this.display = di;
 		this.update = up;
+		this.$;
+		
+		this.active = function (bol) {
+			
+			if(bol)
+				this.$.addClass('active');
+			else
+				this.$.removeClass('active');
+			
+		};
+		
+		$('.frame-tools').append('<div name="'+ this.name +'">'+ this.name[0].toUpperCase() +'</div>');
+		this.$ = $('.frame-tools > div[name='+ this.name +']');
+		
+		this.$.click(function(){
+			
+			Main.pencil.selectBrush($(this).attr('name'));
+			
+		});
 
 	}
 	
@@ -207,7 +229,7 @@ $(function() {
 			
 		};
 		this.updatePreviewScale = function () {
-			$('.frame-render .layer-preview').css('background-size', (previewScale * width) + 'px');
+			$('.frame-editor .layer-preview').css('background-size', (previewScale * width) + 'px');
 		};
 		this.updateEditorScale = function () {
 			$canvas.parent().parent().css('width', (width * scale) + 'px').css('height', (height * scale) + 'px');
@@ -300,7 +322,7 @@ $(function() {
 			this.addLayer('Calque 0', context);
 			activeLayer = layers[0];
 			
-			$('.frame-render .layer-preview').css('background-size', (previewScale * scale) + 'px');
+			$('.frame-editor .layer-preview').css('background-size', (previewScale * scale) + 'px');
 			
 			$canvas.on('mouseenter', function(e) {	
 				Main.pencil.$.show();
@@ -451,11 +473,11 @@ $(function() {
 				context.putImageData(data, 0, 0);
 			}
 			
-			$('.frame-render .panel-canvas .container').append('<img class="layer pixelated" name="' + this.name + '" style="z-index:'+ this.index +';" />');
-			$('.frame-render .layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
+			$('.frame-editor .panel-canvas .container').append('<img class="layer pixelated" name="' + this.name + '" style="z-index:'+ this.index +';" />');
+			$('.frame-editor .layer-preview').append('<div class="layer-'+ this.name +'" style="z-index:'+ this.index +';"></div>');
 			
-			this.$ep = $('.frame-render .panel-canvas .container > img[name='+ this.name +']');
-			this.$pp = $('.frame-render .layer-preview .layer-'+ this.name);
+			this.$ep = $('.frame-editor .panel-canvas .container > img[name='+ this.name +']');
+			this.$pp = $('.frame-editor .layer-preview .layer-'+ this.name);
 			
 		}
 		
@@ -582,19 +604,16 @@ $(function() {
 			
 		};
 		
-		this.addBrush = function (name, b) {
+		this.addBrush = function (b) {
 			
-			if(name === 'default')
-				return false;
-			
-			brushes[name] = b;
+			brushes[b.name] = b;
 			
 		};
 		
 		this.setColor = function (c) {
 			this.color = c;
 			this.activeBrush.update(this, Main.pattern.getScale());
-			$('.frame-tools .panel[name=colorPicker] .color-preview').css('background-color', '#' + this.color.getHexa());
+			$('.frame-param .panel[name=colorPicker] .color-preview').css('background-color', '#' + this.color.getHexa());
 		};
 		this.setSize = function (s) {
 			
@@ -621,13 +640,18 @@ $(function() {
 		
 		this.selectBrush = function (name) {
 			
+			if(this.activeBrush !== undefined)
+				this.activeBrush.active(false);
+			
 			if(brushes.hasOwnProperty(name)) {
 				this.activeBrush = brushes[name];
 				this.activeBrush.update(this, Main.pattern.getScale());
+				$('.frame-tools > div[name='+ name +']').addClass('active');
 				return true;
 			}else {
 				this.activeBrush = brushes['default'];
 				this.activeBrush.update(this, Main.pattern.getScale());
+				$('.frame-tools > div[name=default]').addClass('active');
 				return false;
 			}
 			
@@ -637,7 +661,7 @@ $(function() {
 		
 		
 		
-		brushes['default'] = new Brush(function (pen, layer) {
+		this.addBrush(new Brush('default', function (pen, layer) {
 
 			var ct = layer.context;
 
@@ -656,12 +680,11 @@ $(function() {
 			
 			var size = pen.size * scale;
 			pen.$.css('width', size + 'px').css('height', size + 'px');
-			pen.$.css('background-color', '#' + pen.color.getHexa());
+			pen.$.css('background-color', '#' + pen.color.getHexa()).css('border', 'none');;
 			
-		});
+		}));
 		
-		this.activeBrush = brushes['default'];
-		
+		this.selectBrush('default');
 		this.activeBrush.update(this, Main.pattern.getScale());
 		
 		
@@ -691,6 +714,23 @@ $(function() {
 	
 	
 	
+	Main.pencil.addBrush(new Brush('eraser', function (pen, layer) {
+
+		var ct = layer.context;
+		ct.clearRect(pen.pos.x, pen.pos.y, pen.size, pen.size);
+
+	}, function (pen, scale) {
+
+		pen.$.css('left', pen.pos.x * scale)
+			 .css('top',  pen.pos.y * scale);
+
+	}, function (pen, scale) {
+
+		var size = pen.size * scale;
+		pen.$.css('width', size + 'px').css('height', size + 'px');
+		pen.$.css('background-color', '#fff').css('border', '1px dashed grey');
+
+	}));
 	
 	
 	
@@ -730,13 +770,12 @@ $(function() {
 	
 	
 	
-	
-	$('.frame-tools .panel[name=layers] .tools > div[action=add]').click(function () {
+	$('.frame-param .panel[name=layers] .tools > div[action=add]').click(function () {
 		Main.pattern.addLayer();
 	});
 	
-	$('.frame-tools .parameter input').on('keydown', onChangeParameter);
-	$('.frame-tools .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
+	$('.frame-param .parameter input').on('keydown', onChangeParameter);
+	$('.frame-param .parameter input[type=checkbox]').on('mousedown', onChangeParameter);
 	
 	$colorPicker = $('#colorpicker').farbtastic(function(color) {
 		
@@ -747,14 +786,14 @@ $(function() {
 		
 	});
 	
-	$('.frame-tools .panel > h3').click(function(){
+	$('.frame-param .panel > h3').click(function(){
 		
 		$(this).parent().toggleClass('fold');
 		
 	});
 	
-	$('.frame-tools .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
-	$('.frame-tools .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
+	$('.frame-param .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
+	$('.frame-param .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
 		var a = hexaToArray($(this).attr('color')),
 			c = new Color(a.r, a.v, a.b, 1);
@@ -796,7 +835,7 @@ $(function() {
 	function newColorCell() {
 		
 		var cell = '<div class="color-cell" color="#' + Main.pencil.color.getHexa() + '" style="background-color:#' + Main.pencil.color.getHexa() + ';"></div>';
-		$('.frame-tools .panel[name=colorPicker] .color-grid').prepend(cell);
+		$('.frame-param .panel[name=colorPicker] .color-grid').prepend(cell);
 		
 	}
 	
