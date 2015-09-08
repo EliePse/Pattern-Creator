@@ -303,6 +303,44 @@ $(function() {
 			
 		};
 		
+		this.removeLayer = function (i) {
+			
+			var l = (i === undefined) ? activeLayer : layers[i];
+			
+			l.remove();
+			layers[layers.indexOf(l)] = undefined;
+			
+			var t = [];
+			
+			for(i=0; i<layers.length; i++)
+				if(layers[i] !== undefined)
+					t.push(layers[i]);
+			
+			layers = t;
+					
+			layers.sort(function (a,b){
+				if(a.index < b.index)
+					return -1;
+				else if(a.index > b.index)
+					return 1;
+				else
+					return 0;
+			});
+			
+			for(i=0; i<layers.length; i++)
+				layers[i].setIndex(i);
+			
+			refreshLayersList();
+			
+		};
+		
+		this.renameLayer = function (i, name) {
+			
+			var l = (i === undefined) ? activeLayer : layers[i];
+			l.rename(name);
+			
+		};
+		
 		function refreshLayersList() {
 			
 			var cont = $('.panel[name=layers] .container');
@@ -376,6 +414,7 @@ $(function() {
 		function Layer(n, i, c) {
 			
 			this.name = n.replace(' ', '_');
+			this.displayName = n;
 			this.lock = false;
 			this.visible = true;
 			this.index = i;
@@ -434,7 +473,7 @@ $(function() {
 				$('.panel[name=layers] .container').append('<div class="layer" name="' + this.name
 														   + '" index="'+ this.index
 														   + '"><input type="checkbox" checked autocomplete="off" />'
-														   + '<div class="preview pixelated"></div><h6 class="title">'+ this.name
+														   + '<div class="preview pixelated"></div><h6 class="title">'+ this.displayName
 														   + '</h6></div>');
 				this.$lp = $('.panel[name=layers] .container .layer[name='+ this.name +']');
 				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
@@ -468,7 +507,16 @@ $(function() {
 				this.$ep.show();
 			};
 			this.getData = function () { return data; };
-			
+			this.remove = function () {
+				context.clearRect(0,0, width, height);
+				this.$pp.remove();
+				this.$lp.find('.preview').remove();
+				this.$ep.remove();
+			};
+			this.rename = function (n) {
+				this.displayName = n;
+				this.$lp.find('h6').html(n);
+			};
 			function printIntoCanvas() {
 				context.putImageData(data, 0, 0);
 			}
@@ -772,6 +820,16 @@ $(function() {
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=add]').click(function () {
 		Main.pattern.addLayer();
+	});
+	
+	$('.frame-param .panel[name=layers] .tools > div[action=delete]').click(function () {
+		Main.pattern.removeLayer();
+	});
+	
+	$('.frame-param .panel[name=layers] .tools > div[action=rename]').click(function () {
+		var n = prompt('Choisissez un nouveau nom', Main.pattern.getCurrentLayer().name);
+		if(n === null) return;
+		Main.pattern.renameLayer(undefined, n);
 	});
 	
 	$('.frame-param .parameter input').on('keydown', onChangeParameter);
