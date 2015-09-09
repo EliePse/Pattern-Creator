@@ -128,10 +128,8 @@ $(function() {
 				preview: activeLayer.getPreviewLink()
 			});
 			
-			if(history.length > 10)
+			if(history.steps.length > 10)
 				history.steps.pop();
-			
-			c_info(history);
 			
 		}
 		
