@@ -154,8 +154,8 @@ $(function() {
 			
 			index = (activeLayer === undefined) ? 0 : (activeLayer.index);
 			
-			var l = new Layer(name, index, context);
 			context.clearRect(0, 0, width, height);
+			var l = new Layer(name, index, context);
 			
 			if(layers[index] instanceof Layer) {
 				
@@ -181,8 +181,8 @@ $(function() {
 			
 			if(activeLayer)
 				activeLayer.hideActive();
-			activeLayer = l;
 			
+			activeLayer = l;
 			refreshLayersList();
 			
 			activeLayer.showActive();
@@ -493,7 +493,7 @@ $(function() {
 			this.$pp; // Layer on preview
 			
 			var data = c.createImageData(width, height),
-				previewLink = previewLink = canvas.toDataURL();
+				previewLink = canvas.toDataURL();
 			
 			this.updatePixels = function () {
 				data = c.getImageData(0, 0, width, height);
