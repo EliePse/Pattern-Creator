@@ -416,6 +416,7 @@ $(function() {
 			});
 
 			$(document).on('mousedown', function(e) {
+				
 				Main.pencil.state = 1;
 				Main.pencil.updatePos(e);
 				if( Main.pencil.draw() ) {
@@ -424,11 +425,45 @@ $(function() {
 				}
 				Main.pencil.display();
 				
-				c_info('#' + Main.pencil.color.getHexa())
-				c_info($('.color-grid[name="tools.brush.latest-color"] div:first-child').attr('color'))
+			});
+			
+			$('.frame-render').on('mousedown', function(e) {
 				
-				if('#' + Main.pencil.color.getHexa() !== $('.color-grid[name="tools.brush.latest-color"] div:last-child').attr('color')) {
-					newColorCell('.color-grid[name="tools.brush.latest-color"]', 15);
+				var nc = Main.pencil.color,
+					lt = Main.pencil.latestColors,
+					isNew = true;
+				
+				for(i=0; i<Main.pencil.latestColors.length; i++) {
+					if(lt[i].getHexa() === nc.getHexa()) {
+						
+						isNew = false;
+						
+						if(i === 0) break;
+						
+						var tc = lt[i];
+						
+						for(j=i;j>0;j--) {
+							var a = lt[j - 1];
+							lt[j] = a;
+						}
+						
+						lt[0] = tc;
+						
+						$('.color-grid[name="tools.brush.latest-color"] > div').remove();
+						
+						for(j=lt.length - 1;j>=0;j--)
+							newColorCell('.color-grid[name="tools.brush.latest-color"]', lt[j], 15);
+						
+						break;
+						
+					}
+				}
+				
+				if(isNew) {
+					newColorCell('.color-grid[name="tools.brush.latest-color"]', nc, 15);
+					lt.unshift(nc);
+					if(lt.length >= 15)
+						lt.pop();
 				}
 				
 			});
@@ -633,7 +668,7 @@ $(function() {
 		this.size = 1;
 		this.brush;
 		this.activeBrush;
-		this.isColorChanged = false;
+		this.latestColors = [this.color];
 		
 		this.active = true;
 		this.state = -1; // -1: released, 1: pressed
@@ -945,7 +980,7 @@ $(function() {
 	});
 	
 	$('.frame-param .panel[name=colorPicker] .color-grid .color-cell.new').click(function(){
-		newColorCell('.frame-param .panel[name=colorPicker] .color-grid[name="tools.brush.color"]');
+		newColorCell('.frame-param .panel[name=colorPicker] .color-grid[name="tools.brush.color"]', Main.pencil.color, 45);
 	});
 	$('.frame-param .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
@@ -986,7 +1021,7 @@ $(function() {
 	
 
 	
-	function newColorCell(sel, limit) {
+	function newColorCell(sel, color, limit) {
 		
 		var $el = $(sel);
 		
@@ -994,7 +1029,7 @@ $(function() {
 			$el.find(':last-child').remove();
 		}
 		
-		var cell = '<div class="color-cell" color="#' + Main.pencil.color.getHexa() + '" style="background-color:#' + Main.pencil.color.getHexa() + ';"></div>';
+		var cell = '<div class="color-cell" color="#' + color.getHexa() + '" style="background-color:#' + color.getHexa() + ';"></div>';
 		$el.prepend(cell);
 		
 	}
