@@ -206,8 +206,6 @@ $(function() {
 				width--;
 			else if(!isNaN(x) && x > 0)
 				width = x;
-			else
-				return false;
 			
 			if(y === '++')
 				height++;
@@ -215,8 +213,6 @@ $(function() {
 				height--;
 			else if(!isNaN(y) && y > 0)
 				height = y;
-			else
-				return false;
 			
 			if(tSize.x === width && tSize.y === height) return false;
 			
@@ -1117,10 +1113,16 @@ $(function() {
 				if(path[2] === 'pattern') {
 					
 					switch(path[3]) {
-						case 'size':
+						case 'width':
 							return {
-								b: Main.pattern.setSize(val, val),
+								b: Main.pattern.setSize(val, undefined),
 								v: Main.pattern.getSize().x
+							};
+							break;
+						case 'height':
+							return {
+								b: Main.pattern.setSize(undefined, val),
+								v: Main.pattern.getSize().y
 							};
 							break;
 						case 'scale':
