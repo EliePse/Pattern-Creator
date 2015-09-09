@@ -108,7 +108,7 @@ $(function() {
 		this.active = true;
 		
 		var showEditor = true,
-			showPreview = true;
+			showPatternPreview = true;
 		
 		var layers = [],
 			activeLayer;
@@ -271,16 +271,16 @@ $(function() {
 			
 		};
 		
-		this.hidePreview = function () {
+		this.hidePatternPreview = function () {
 			
 			$('.layer-preview').hide();
-			showPreview = false;
+			showPatternPreview = false;
 			
 		};
-		this.showPreview = function () {
+		this.showPatternPreview = function () {
 			
 			$('.layer-preview').show();
-			showPreview = true;
+			showPatternPreview = true;
 			
 		};
 		this.hideEditor = function () {
@@ -297,10 +297,8 @@ $(function() {
 		};
 		
 		this.isEditor = function () {return showEditor;};
-		this.isPreview = function () {return showPreview;};
+		this.isPreview = function () {return showPatternPreview;};
 		this.previewAll = function () {
-			
-			if(!showPreview) return;
 			
 			for(i=0; i<layers.length; i++) {
 				layers[i].preview();
@@ -511,7 +509,8 @@ $(function() {
 			this.preview = function () {
 				this.$lp.find('.preview').css('background-image', 'url('+ previewLink +')');
 				this.$ep.attr('src', previewLink);
-				this.$pp.css('background-image', 'url('+ previewLink +')');
+				if(showPatternPreview) 
+					this.$pp.css('background-image', 'url('+ previewLink +')');
 			};
 			this.getPreviewLink = function () {
 				return previewLink;
@@ -1159,9 +1158,9 @@ $(function() {
 				}else if(path[2] === 'showPreview') {
 					
 					if(val)
-						Main.pattern.showPreview();
+						Main.pattern.showPatternPreview();
 					else
-						Main.pattern.hidePreview();
+						Main.pattern.hidePatternPreview();
 						
 					return {
 						b: true,
