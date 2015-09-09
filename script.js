@@ -846,6 +846,15 @@ $(function() {
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	Main.pencil.addBrush(new Brush('eraser', function (pen, layer) {
 
 		var ct = layer.context;
@@ -857,26 +866,48 @@ $(function() {
 			 .css('top',  pen.pos.y * scale);
 
 	}, function (pen, scale) {
-		
+
 		var size = pen.size * scale;
 		pen.$.css('width', size + 'px').css('height', size + 'px');
 		pen.$.css('background-color', '#fff').css('border', '1px dashed grey');
-		
+
 	}));
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+	Main.pencil.addBrush(new Brush('random', function (pen, layer) {
+
+		var ct = layer.context;
+		
+		ct.beginPath();
+		for(i=0; i<pen.size; i++) {
+			
+			ct.rect(pen.pos.x + Math.round(rand(pen.size + 1)), pen.pos.y + Math.round(rand(pen.size + 1)), 1, 1);
+			
+		}
+		ct.fillStyle = '#' + pen.color.getHexa();
+		ct.globalAlpha = pen.color.a;
+		ct.fill();
+
+		function rand(lim) {
+
+			if(Math.random() < 0.5)
+				return Math.random() * lim;
+			else
+				return -Math.random() * lim;
+
+		}
+
+	}, function (pen, scale) {
+
+		pen.$.css('left', pen.pos.x * scale)
+			 .css('top',  pen.pos.y * scale);
+
+	}, function (pen, scale) {
+
+		var size = pen.size * scale;
+		pen.$.css('width', size + 'px').css('height', size + 'px');
+		pen.$.css('background-color', '#000').css('border', 'none');
+
+	}));
 	
 	
 	
