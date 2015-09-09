@@ -423,6 +423,14 @@ $(function() {
 					activeLayer.updatePreviewLink();
 				}
 				Main.pencil.display();
+				
+				c_info('#' + Main.pencil.color.getHexa())
+				c_info($('.color-grid[name="tools.brush.latest-color"] div:first-child').attr('color'))
+				
+				if('#' + Main.pencil.color.getHexa() !== $('.color-grid[name="tools.brush.latest-color"] div:last-child').attr('color')) {
+					newColorCell('.color-grid[name="tools.brush.latest-color"]', 15);
+				}
+				
 			});
 
 			$(document).on('mouseup', function(e) {
@@ -620,11 +628,12 @@ $(function() {
 		
 		this.pos = {x:0, y:0};
 		this.realPos = {x:0, y:0};
-		this.color = new Color(0,0,0);
+		this.color = new Color('00','00','00');
 		this.alpha = '1';
 		this.size = 1;
 		this.brush;
 		this.activeBrush;
+		this.isColorChanged = false;
 		
 		this.active = true;
 		this.state = -1; // -1: released, 1: pressed
@@ -705,6 +714,7 @@ $(function() {
 		};
 		
 		this.setColor = function (c) {
+			this.isColorChanged = true;
 			this.color = c;
 			this.activeBrush.update(this, Main.pattern.getScale());
 			$('.frame-param .panel[name=colorPicker] .color-preview').css('background-color', '#' + this.color.getHexa());
@@ -934,7 +944,9 @@ $(function() {
 		
 	});
 	
-	$('.frame-param .panel[name=colorPicker] .color-grid .color-cell.new').click(newColorCell);
+	$('.frame-param .panel[name=colorPicker] .color-grid .color-cell.new').click(function(){
+		newColorCell('.frame-param .panel[name=colorPicker] .color-grid[name="tools.brush.color"]');
+	});
 	$('.frame-param .panel[name=colorPicker] .color-grid').on('click', '.color-cell:not(.new)', function() {
 		
 		var a = hexaToArray($(this).attr('color')),
@@ -974,10 +986,16 @@ $(function() {
 	
 
 	
-	function newColorCell() {
+	function newColorCell(sel, limit) {
+		
+		var $el = $(sel);
+		
+		if(!isNaN(limit) && limit > 0 && limit <= $el.find('div').length) {
+			$el.find(':last-child').remove();
+		}
 		
 		var cell = '<div class="color-cell" color="#' + Main.pencil.color.getHexa() + '" style="background-color:#' + Main.pencil.color.getHexa() + ';"></div>';
-		$('.frame-param .panel[name=colorPicker] .color-grid').prepend(cell);
+		$el.prepend(cell);
 		
 	}
 	
