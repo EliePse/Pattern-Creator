@@ -190,6 +190,40 @@ $(function() {
 			
 		};
 		
+		this.moveLayer = function (a, b) { // élément A à la place de B
+			
+			var ia, ib, l_from, l_to;
+			
+			if(a === undefined){
+				ia = activeLayer.index;
+			}else {
+				ia = a;
+			}
+			
+			if(b === 'down'){
+				ib = ia - 1;
+			}else if(b === 'up'){
+				ib = ia - 1;
+			}else{
+				ib = b;
+			}
+			
+			if(ia < 0 || ia >= layers.length || ib < 0 || ib >= layers.length) return;
+			
+			l_from = layers[ia];
+			l_to = layers[ib];
+			
+			l_from.setIndex(ib);
+			l_to.setIndex(ia);
+			
+			layers[ib] = l_from;
+			layers[ia] = l_to;
+			
+			
+			refreshLayersList();
+			
+		};
+		
 		this.getCurrentLayer = function () { return activeLayer; };
 		this.getScale = function () { return scale; };
 		this.getCanvas = function () { return $canvas; };
@@ -979,6 +1013,14 @@ $(function() {
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=delete]').click(function () {
 		Main.pattern.removeLayer();
+	});
+	
+	$('.frame-param .panel[name=layers] .tools > div[action=moveup]').click(function () {
+		Main.pattern.moveLayer(undefined, 'up');
+	});
+	
+	$('.frame-param .panel[name=layers] .tools > div[action=movedown]').click(function () {
+		Main.pattern.moveLayer(undefined, 'down');
 	});
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=rename]').click(function () {
