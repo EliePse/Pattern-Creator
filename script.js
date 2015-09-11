@@ -524,8 +524,10 @@ $(function() {
 				this.updatePixels();
 				previewLink = undefined;
 				this.$pp.css('background-image', '');
-				this.$lp.find('.preview').css('background-image', '');
 				this.$ep.removeAttr('src');
+				var lpre = this.$lp.find('.preview');
+				lpre.css('background-image', '')
+					.css('width', Math.round((width * 28) / height) + 'px');
 			};
 			this.show = function () {
 				this.visible = true;
