@@ -108,7 +108,7 @@ $(function() {
 		this.active = true;
 		
 		var showEditor = true,
-			showPatternPreview = true;
+			showPatternPreview = false;
 		
 		var layers = [],
 			activeLayer;
