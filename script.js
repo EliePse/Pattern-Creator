@@ -194,21 +194,21 @@ $(function() {
 			
 			var ia, ib, l_from, l_to;
 			
-			if(a === undefined){
-				ia = activeLayer.index;
-			}else {
+			if(!isNaN(a) && !isNaN(b)) {
+				
 				ia = a;
-			}
-			
-			if(b === 'down'){
-				ib = ia - 1;
-			}else if(b === 'up'){
-				ib = ia - 1;
-			}else{
 				ib = b;
+				
+			}else {
+				
+				ia = (isNaN(b)) ? activeLayer.index : b;
+				ib = (a === 'down') ? ia - 1 : ia + 1;
+				
 			}
 			
-			if(ia < 0 || ia >= layers.length || ib < 0 || ib >= layers.length) return;
+			if(ia < 0 || ia >= layers.length ||
+			   ib < 0 || ib >= layers.length)
+				return;
 			
 			l_from = layers[ia];
 			l_to = layers[ib];
@@ -218,7 +218,6 @@ $(function() {
 			
 			layers[ib] = l_from;
 			layers[ia] = l_to;
-			
 			
 			refreshLayersList();
 			
@@ -366,12 +365,17 @@ $(function() {
 		
 		this.removeLayer = function (i) {
 			
-			var l = (i === undefined) ? activeLayer : layers[i];
+			if(layers.length === 1)
+				return;
+			
+			var l = (i === undefined) ? activeLayer : layers[i],
+				index = l.index,
+				n_index = (index === 0) ? 1 : index - 1,
+				t = [];
 			
 			l.remove();
-			layers[layers.indexOf(l)] = undefined;
-			
-			var t = [];
+			this.setActiveLayer(n_index);
+			layers[index] = undefined;
 			
 			for(i=0; i<layers.length; i++)
 				if(layers[i] !== undefined)
@@ -1016,11 +1020,11 @@ $(function() {
 	});
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=moveup]').click(function () {
-		Main.pattern.moveLayer(undefined, 'up');
+		Main.pattern.moveLayer('up');
 	});
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=movedown]').click(function () {
-		Main.pattern.moveLayer(undefined, 'down');
+		Main.pattern.moveLayer('down');
 	});
 	
 	$('.frame-param .panel[name=layers] .tools > div[action=rename]').click(function () {
