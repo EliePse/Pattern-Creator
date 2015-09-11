@@ -563,9 +563,19 @@ $(function() {
 				previewLink = undefined;
 				this.$pp.css('background-image', '');
 				this.$ep.removeAttr('src');
-				var lpre = this.$lp.find('.preview');
+				
+				var lpre = this.$lp.find('.preview'),
+					si = {x:30,y:30};
+				
+				if(width / height >= 1)
+					si.y = Math.round((height * si.x) / width);
+				else
+					si.x = Math.round((width * si.y) / height);
+			
 				lpre.css('background-image', '')
-					.css('width', Math.round((width * 28) / height) + 'px');
+					.css('width', si.x + 'px')
+					.css('height', si.y + 'px');
+			
 			};
 			this.show = function () {
 				this.visible = true;
